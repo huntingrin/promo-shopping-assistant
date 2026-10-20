@@ -2,7 +2,7 @@
 
 Python 3.10+，无依赖；任意工作目录均可执行。以下的 `<skill-dir>` 指包含 `SKILL.md` 的目录。输入字段区分大小写，金额推荐十进制字符串，数量和版本为整数。程序不直接处理图片：宿主 Agent 将材料整理为下述资料。
 
-v0.2 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tmall.md](taobao-tmall.md) 核实当前规则；原 `input-spec.md` 是保留的通用内核协议，不能据其任意平台字段推定产品支持其他平台。
+v0.3 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tmall.md](taobao-tmall.md) 核实当前规则；原 `input-spec.md` 是保留的通用内核协议，不能据其任意平台字段推定产品支持其他平台。比例、多件、共享余额与支付优惠使用 [discounts.md](discounts.md) 的增补协议；原内核文档的“未覆盖比例”等说明只适用于原快照。
 
 ## 命令
 
@@ -15,6 +15,8 @@ python3 <skill-dir>/scripts/shopping.py update TASK_DIR --patch PATCH.json
 python3 <skill-dir>/scripts/shopping.py compare TASK_DIR [--time-limit 15] [--format json|text]
 python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --order 1 --receipt RECEIPT.json
 ```
+
+`demo --discounts` 运行新折扣叠加假设案例，预计67.22元，无任务副作用。
 
 `--approve` 可重复，例如 `--approve cloth --approve box`，由 Agent 代为传递已经得到的具体商品同意。`solve` 不保存状态；`demo` 自动批准假设案例中的清洁布并展示390/345/375元三种情景，不写任务文件。
 
@@ -33,7 +35,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 | 优惠 `marketplaces` | 与店铺、商品ID、品类、标签共同以 AND 匹配；淘宝店专属写 `["taobao"]`，天猫专属写 `["tmall"]` |
 | 运费 `platform` | 淘宝/天猫均归入 `taobao` 交易域，按实际唯一店铺标识配置，不能为同店重复配置 |
 
-同交易域不自动保证同次能付款，`checkout_group` 仍表示已核实的可合并阶段/渠道。天猫与淘宝店的类型不单独导致拆单。适配版本保存在结果的 `market=taobao-tmall` 和 `rule_profile=taobao-tmall-v1` 中，并计入输入指纹，旧适配版本的缓存不能冒充新结果。
+同交易域不自动保证同次能付款，`checkout_group` 仍表示已核实的可合并阶段/渠道。天猫与淘宝店的类型不单独导致拆单。适配版本保存在结果的 `market=taobao-tmall` 和 `rule_profile=taobao-tmall-v2` 中，并计入输入指纹，旧适配版本的缓存不能冒充新结果。
 
 最小可计算例：
 
@@ -90,6 +92,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 | --- | --- |
 | `items`, `promotions` | 按ID合并字段；不存在则新增；数组顺序保持优惠执行顺序，新增优惠追加到末尾 |
 | `shipping` | 按 `platform + shop` 合并；要取消包邮门槛，显式将 `free_threshold` 设为 `null` |
+| `resources` | 按ID合并金额余额或积分数量；已确定的单位类型不能改变，已购后剩余值持续保存 |
 | `remove_items`, `remove_promotions` | 删除指定ID；商品退出购买用 `remove_items`，不是把 `required` 改成可选 |
 | `preferences` | 合并偏好；候选品需先存在且 `required=false`；批准清单不能包含必买品或未知ID |
 | `questions` | 替换当前手动补问列表；每条必填 `id`, `text`, `blocking`，可有 `source` |
@@ -110,7 +113,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 - `cheapest`：必买品和已批准候选品中求最低总支出；同金额优先少加购，再少结算。
 - `fewest_checkouts`：先取必买品所需的最少可行结算组数，在该次数下求最低总支出。
 
-v1 规则不限制“必须用某张券”或每单最低购买金额，因此每个不同的 `(platform, checkout_group)` 都可以一次买齐，组数恰为最少可行次数。规则扩展后若破坏此条件，必须更新此策略。优惠账户次数仍由同一个求解器统一约束。
+当前规则的件数/金额门槛只决定优惠是否生效，不禁止正常购买，所以每个不同的 `(platform, checkout_group)` 都可以一次买齐，组数仍是最少可行次数。自动共享封顶可能改变购买顺序及后续券是否生效，新引擎在该次数内也比较顺序，并可在省钱策略下增加已批准的凑单批次；不会通过跳过自动优惠伪造门槛。
 
 每个方案保留 `summary`, `orders`, `coupon_usage`, 假设、提示和求解统计。包装层的 `summary.net_savings_vs_original` 始终与**当前资料、同一上限下的原清单全局最优总支出**比较；可能为负数。内核基于各自次数上限计算的局部节省字段在包装层删除，避免混用基准。
 
@@ -154,11 +157,11 @@ python3 <skill-dir>/scripts/shopping.py compare <task-dir>
 
 商品数量按本次结算扣除；原清单全部买完后返回 `complete`，剩余未买的可选候选不强制购买。若实付金额与预计不同，会生成阻塞差异问题；查清是否影响剩余规则后，通过更新和 `resolve_questions` 解除。
 
-## 从v0.1继续任务
+## 从v0.1/v0.2继续任务
 
 仍使用 `session.json` v1。旧任务的淘宝/天猫别名在读取时规范化，旧结果因规则适配指纹变化而失效，需要重新计算。普通 `show` 不改写原文件；下一次更新/计算会原子保存规范化的资料。
 
-原来使用 `demo`、`p`、`q` 等虚构平台或其他真实平台的任务不属于新产品范围，会明确拒绝；源文件保留，不自动把它们冒充淘宝资料。假设演示请重新使用v0.2附带的淘宝天猫格式案例。低层 `optimize.py` 仅作为原算法快照与测试入口保留，面向用户使用 `shopping.py`。
+原来使用 `demo`、`p`、`q` 等虚构平台或其他真实平台的任务不属于新产品范围，会明确拒绝；源文件保留，不自动把它们冒充淘宝资料。假设演示请使用当前附带的淘宝天猫格式案例。低层 `optimize.py` 仅作为原算法快照与测试入口保留，面向用户使用 `shopping.py`。
 
 ## 本地文件与并发
 

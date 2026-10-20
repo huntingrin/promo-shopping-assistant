@@ -6,7 +6,7 @@ from copy import deepcopy
 from optimize import check
 
 MARKET = "taobao-tmall"
-PROFILE_VERSION = "taobao-tmall-v1"
+PROFILE_VERSION = "taobao-tmall-v2"
 MARKETPLACES = ("taobao", "tmall")
 PRICE_KINDS = ("before_order_promotions", "after_coupons", "tail_payment", "unknown")
 

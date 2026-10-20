@@ -1,9 +1,42 @@
-Program: promo-shopping-assistant 0.2.0
+Program: promo-shopping-assistant 0.3.0
 Python: 3.14.6
 Platform: Darwin 25.3.0 arm64
 
+
 $ python3 -m unittest discover -s tests -v
 
+test_discount_demo_and_persistent_purchase_roundtrip (test_discounts.DiscountCLITests.test_discount_demo_and_persistent_purchase_roundtrip) ... ok
+test_extended_search_failure_replaces_prior_success (test_discounts.DiscountCLITests.test_extended_search_failure_replaces_prior_success) ... ok
+test_auto_coupon_ledger_survives_removal_and_reintroduction (test_discounts.DiscountTests.test_auto_coupon_ledger_survives_removal_and_reintroduction) ... ok
+test_auto_limited_discount_is_debited_after_purchase (test_discounts.DiscountTests.test_auto_limited_discount_is_debited_after_purchase) ... ok
+test_automatic_budget_can_make_checkout_order_matter (test_discounts.DiscountTests.test_automatic_budget_can_make_checkout_order_matter) ... ok
+test_deposit_is_not_discounted_or_refunded_by_percentage_or_credit (test_discounts.DiscountTests.test_deposit_is_not_discounted_or_refunded_by_percentage_or_credit) ... ok
+test_every_two_items_fixed_reduction (test_discounts.DiscountTests.test_every_two_items_fixed_reduction) ... ok
+test_explicitly_unknown_payable_floor_is_preserved_for_clarification (test_discounts.DiscountTests.test_explicitly_unknown_payable_floor_is_preserved_for_clarification) ... ok
+test_flexible_balance_enumerates_partial_use_without_assuming_it (test_discounts.DiscountTests.test_flexible_balance_enumerates_partial_use_without_assuming_it) ... ok
+test_inactive_incomplete_resource_does_not_block_and_updates_are_versioned (test_discounts.DiscountTests.test_inactive_incomplete_resource_does_not_block_and_updates_are_versioned) ... ok
+test_invalid_rules_and_unsupported_asset_models_are_rejected (test_discounts.DiscountTests.test_invalid_rules_and_unsupported_asset_models_are_rejected) ... ok
+test_item_and_checkout_rounding_are_distinct_and_integer_exact (test_discounts.DiscountTests.test_item_and_checkout_rounding_are_distinct_and_integer_exact) ... ok
+test_min_quantity_counts_eligible_items_only (test_discounts.DiscountTests.test_min_quantity_counts_eligible_items_only) ... ok
+test_minimum_payable_floors_do_not_double_count (test_discounts.DiscountTests.test_minimum_payable_floors_do_not_double_count) ... ok
+test_missing_rounding_balance_or_point_conversion_blocks (test_discounts.DiscountTests.test_missing_rounding_balance_or_point_conversion_blocks) ... ok
+test_official_then_vip_sequential_or_parallel_bases (test_discounts.DiscountTests.test_official_then_vip_sequential_or_parallel_bases) ... ok
+test_optional_only_first_checkout_can_be_required_for_true_optimum (test_discounts.DiscountTests.test_optional_only_first_checkout_can_be_required_for_true_optimum) ... ok
+test_order_dependent_purchase_checks_starting_automatic_balances (test_discounts.DiscountTests.test_order_dependent_purchase_checks_starting_automatic_balances) ... ok
+test_payment_credit_does_not_retrigger_free_shipping (test_discounts.DiscountTests.test_payment_credit_does_not_retrigger_free_shipping) ... ok
+test_payment_threshold_includes_shipping_only_when_explicit (test_discounts.DiscountTests.test_payment_threshold_includes_shipping_only_when_explicit) ... ok
+test_per_checkout_and_per_item_caps (test_discounts.DiscountTests.test_per_checkout_and_per_item_caps) ... ok
+test_points_percentage_limit_and_red_packet_stack (test_discounts.DiscountTests.test_points_percentage_limit_and_red_packet_stack) ... ok
+test_points_use_explicit_conversion_steps_and_cannot_overdraw (test_discounts.DiscountTests.test_points_use_explicit_conversion_steps_and_cannot_overdraw) ... ok
+test_purchase_requires_actual_resource_use_and_debits_money_and_points (test_discounts.DiscountTests.test_purchase_requires_actual_resource_use_and_debits_money_and_points) ... ok
+test_quantity_tiers_pick_highest_qualifying_tier (test_discounts.DiscountTests.test_quantity_tiers_pick_highest_qualifying_tier) ... ok
+test_red_packet_is_a_shared_balance_across_split_checkouts (test_discounts.DiscountTests.test_red_packet_is_a_shared_balance_across_split_checkouts) ... ok
+test_rounding_ties_and_ceil (test_discounts.DiscountTests.test_rounding_ties_and_ceil) ... ok
+test_search_limit_never_returns_a_partial_optimum (test_discounts.DiscountTests.test_search_limit_never_returns_a_partial_optimum) ... ok
+test_shared_vip_budget_and_coupon_counts_do_not_repeat (test_discounts.DiscountTests.test_shared_vip_budget_and_coupon_counts_do_not_repeat) ... ok
+test_shipping_credits_preserve_original_fee_and_cash_conservation (test_discounts.DiscountTests.test_shipping_credits_preserve_original_fee_and_cash_conservation) ... ok
+test_whole_checkout_condition_is_not_an_item_filter (test_discounts.DiscountTests.test_whole_checkout_condition_is_not_an_item_filter) ... ok
+test_seeded_carts_match_independent_order_and_resource_oracle (test_discounts.OracleTests.test_seeded_carts_match_independent_order_and_resource_oracle) ... ok
 test_account_coupon_cannot_be_reused (test_optimizer.OptimizerTests.test_account_coupon_cannot_be_reused) ... ok
 test_automatic_discount_is_mandatory (test_optimizer.OptimizerTests.test_automatic_discount_is_mandatory) ... ok
 test_cent_allocation_conservation_and_floor (test_optimizer.OptimizerTests.test_cent_allocation_conservation_and_floor) ... ok
@@ -73,16 +106,18 @@ test_search_limit_does_not_return_partial_plans (test_workflow.WorkflowTests.tes
 test_shared_coupon_is_consumed_globally_after_partial_purchase (test_workflow.WorkflowTests.test_shared_coupon_is_consumed_globally_after_partial_purchase) ... ok
 
 ----------------------------------------------------------------------
-Ran 67 tests in 0.933s
+Ran 99 tests in 1.630s
 
 OK
 
 exit=0
 
+
 $ python3 quick_validate.py <skill-dir>
+
 Skill is valid!
 
-
 exit=0
+
 
 Upstream snapshot SHA-256: all 3 files match recorded originals.

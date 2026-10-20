@@ -14,18 +14,20 @@ import time
 import uuid
 
 from optimize import (InputError, SearchLimit, check, keys, string, integer, boolean,
-                      money, fmt, parse_scenario, optimize, no_duplicate_keys)
+                      money, fmt, no_duplicate_keys)
+from discounts import (optimize, EXT_FIELDS, RESOURCE_FIELDS, validate_rule,
+                       validate_resources, required_fields, uses_limit)
 from taobao import (MARKET, PROFILE_VERSION, normalise_cart, normalise_row,
                     marketplace_matches, compile_cart)
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 ITEM_FIELDS = {"id", "name", "spec", "platform", "shop", "category", "tags",
                "checkout_group", "price", "original_price", "threshold_price",
                "presale_discount", "deposit_paid", "required", "quantity", "source",
                "marketplace", "price_kind"}
 PROMO_FIELDS = {"id", "name", "platform", "mode", "threshold", "discount", "basis",
                 "repeat", "cap", "total_uses", "exclusive_group", "exclusive_scope",
-                "item_ids", "shops", "categories", "tags", "source", "marketplaces"}
+                "item_ids", "shops", "categories", "tags", "source", "marketplaces"} | EXT_FIELDS
 SHIP_FIELDS = {"platform", "shop", "fee", "free_threshold", "basis", "source"}
 
 
@@ -90,11 +92,12 @@ def matches(rule, item):
 
 def validate_cart(cart):
     """Drafts may be incomplete or over size; never discard their contents."""
-    keys(cart, {"version", "label", "assumptions", "items", "promotions", "shipping", "max_orders"},
+    keys(cart, {"version", "label", "assumptions", "items", "promotions", "shipping", "max_orders", "resources"},
          {"version", "items", "promotions"}, "cart")
     check(type(cart["version"]) is int and cart["version"] == 1, "cart.version: 仅支持1")
     for field in ("items", "promotions", "shipping"):
         check(isinstance(cart.get(field, []), list), f"{field}: 应为数组")
+    validate_resources(cart.get("resources", []), draft=True)
     if "max_orders" in cart:
         integer(cart["max_orders"], "max_orders", 1, 12)
     if "label" in cart:
@@ -140,7 +143,9 @@ def validate_cart(cart):
             if "source" in row:
                 check(isinstance(row["source"], (str, dict)) or row["source"] is None,
                       "source: 应为来源文字或对象")
-            if row.get("basis") is not None:
+            if field == "promotions":
+                validate_rule(row)
+            elif row.get("basis") is not None:
                 check(isinstance(row["basis"], str) and row["basis"] in
                       {"price", "original_price", "threshold_price", "remaining"}, "basis: 未支持的门槛基数")
             if row.get("mode") is not None:
@@ -192,8 +197,8 @@ def new_state(cart=None, title=None):
              "preferences": {"allow_addons": False, "approved_optional_ids": [], "preferred": "cheapest"},
              "questions": [], "purchases": [], "history": [], "latest_result": None}
     validate_cart(state["cart"])
-    state["coupon_balances"] = {x["id"]: x.get("total_uses", 1) for x in state["cart"]["promotions"]
-                                if x.get("mode") == "selectable"}
+    state["coupon_balances"] = {x["id"]: uses_limit(x) for x in state["cart"]["promotions"]
+                                if x.get("mode") == "selectable" or uses_limit(x) is not None}
     validate_state(state)
     return state
 
@@ -202,6 +207,9 @@ def project(cart, selected):
     result = deepcopy(cart)
     result["items"] = [x for x in result["items"] if x["id"] in selected]
     clean_cart(result)
+    if "resources" in result:
+        referenced = {p["resource_id"] for p in result["promotions"] if p.get("resource_id")}
+        result["resources"] = [r for r in result["resources"] if r["id"] in referenced]
     return result
 
 
@@ -239,10 +247,26 @@ def readiness(state):
             add(f"source:item:{item['id']}", f"{item.get('name', item['id'])}的价格来源尚未记录。", False)
     for rule in cart["promotions"]:
         labels = {"platform": "适用平台", "mode": "是否自动执行", "threshold": "门槛金额",
-                  "discount": "减免金额", "basis": "门槛计算口径"}
-        for key in ("platform", "mode", "threshold", "discount", "basis"):
+                  "discount": "减免金额", "basis": "门槛计算口径", "rate": "减免比例",
+                  "discount_basis": "比例折扣的计算基数", "rounding": "金额取整方式",
+                  "rounding_scope": "逐件还是整单取整", "resource_id": "共享余额来源",
+                  "allocation": "余额是否必须用到最大额", "min_quantity": "最低适用件数",
+                  "quantity_step": "每次减免对应件数", "min_item_payable": "单件最低未付金额",
+                  "min_payable": "适用范围最低未付金额", "step_value": "每步抵扣金额"}
+        for key in sorted(required_fields(rule)):
             if rule.get(key) is None:
                 add(f"promotion:{rule['id']}:{key}", f"优惠“{rule.get('name', rule['id'])}”缺少{labels[key]}，请核实使用说明。")
+        if rule.get("resource_id"):
+            resource = next((r for r in cart.get("resources", []) if r["id"] == rule["resource_id"]), None)
+            if resource is None or resource.get("kind") is None or resource.get("balance") is None:
+                add(f"resource:{rule['resource_id']}", f"请核实“{rule.get('name', rule['id'])}”可用的共享余额或积分数量。")
+            else:
+                if not resource.get("source"):
+                    add(f"source:resource:{resource['id']}", "共享余额/积分数量的来源尚未记录。", False)
+                if resource["kind"] == "points":
+                    for key, label in (("step_value", "每步抵扣金额"), ("units_per_step", "每步消耗积分数")):
+                        if rule.get(key) is None:
+                            add(f"promotion:{rule['id']}:{key}", f"请核实{rule.get('name', rule['id'])}的{label}，不假设固定通兑比例。")
         if not rule.get("source"):
             add(f"source:promotion:{rule['id']}", f"优惠“{rule.get('name', rule['id'])}”来源尚未记录。", False)
         if rule.get("marketplaces"):
@@ -282,13 +306,13 @@ def advance(state, operation, payload):
 def update_state(state, patch):
     keys(patch, {"expected_revision", "reason", "items", "remove_items", "promotions",
                  "remove_promotions", "shipping", "preferences", "questions", "resolve_questions",
-                 "assumptions", "data_as_of", "max_orders", "label"},
+                 "assumptions", "data_as_of", "max_orders", "label", "resources"},
          {"expected_revision", "reason"}, "update")
     same_revision(state, patch["expected_revision"])
     string(patch["reason"], "reason")
     result = deepcopy(state)
     advance(result, "update", patch)
-    for field, fields in (("items", ITEM_FIELDS), ("promotions", PROMO_FIELDS), ("shipping", SHIP_FIELDS)):
+    for field, fields in (("items", ITEM_FIELDS), ("promotions", PROMO_FIELDS), ("shipping", SHIP_FIELDS), ("resources", RESOURCE_FIELDS)):
         incoming = patch.get(field, [])
         check(isinstance(incoming, list), f"{field}: 应为数组")
         ident_fields = ("platform", "shop") if field == "shipping" else ("id",)
@@ -305,11 +329,12 @@ def update_state(state, patch):
                         if tuple(x.get(k) for k in ident_fields) == ident), None)
             if old is None:
                 added = deepcopy(row)
-                if (field == "promotions" and added.get("mode") == "selectable"
-                        and added["id"] in result["coupon_balances"] and "total_uses" not in added):
+                if (field == "promotions" and added["id"] in result["coupon_balances"] and "total_uses" not in added):
                     added["total_uses"] = result["coupon_balances"][added["id"]]
                 result["cart"][field].append(added)
             else:
+                if field == "resources" and old.get("kind") is not None and row.get("kind") is not None:
+                    check(old["kind"] == row["kind"], "共享资源ID的单位类型不能改变；不同权益请使用新ID")
                 old.update(deepcopy(row))
                 # A correction without evidence must not keep a stale source attached.
                 if "source" not in row and set(row) - set(ident_fields) - {"spec", "name"}:
@@ -344,8 +369,8 @@ def update_state(state, patch):
     else:
         result["data_as_of"] = now()
     for rule in result["cart"]["promotions"]:
-        if rule.get("mode") == "selectable":
-            result["coupon_balances"][rule["id"]] = rule.get("total_uses", 1)
+        if rule.get("mode") == "selectable" or uses_limit(rule) is not None:
+            result["coupon_balances"][rule["id"]] = uses_limit(rule)
     validate_state(result)
     return result
 
@@ -424,7 +449,7 @@ def current_result(state):
 
 
 def record_purchase(state, plan_name, order_number, receipt):
-    keys(receipt, {"expected_revision", "id", "pay_now", "coupon_ids", "source"},
+    keys(receipt, {"expected_revision", "id", "pay_now", "coupon_ids", "source", "resource_usage"},
          {"expected_revision", "id", "pay_now", "coupon_ids", "source"}, "receipt")
     same_revision(state, receipt["expected_revision"])
     string(receipt["id"], "receipt.id")
@@ -443,6 +468,27 @@ def record_purchase(state, plan_name, order_number, receipt):
     rules = {x["id"]: x for x in state["cart"]["promotions"]}
     expected = {x["id"] for x in order["promotions"] if rules[x["id"]]["mode"] == "selectable"}
     check(set(coupons) == expected, "实际用券与方案不同：请先update核对券规则并重新compare，再记录购买")
+    expected_resources = order.get("resource_usage", {})
+    actual_resources = receipt.get("resource_usage", {})
+    check(isinstance(actual_resources, dict) and set(actual_resources) == set(expected_resources), "请核对并记录本次实际消耗的共享余额/积分")
+    resources = {r["id"]: r for r in state["cart"].get("resources", [])}
+    for key, expected_before in order.get("automatic_resources_before", {}).items():
+        group, ident = key.split(":", 1)
+        if group == "uses":
+            actual_before = uses_limit(rules[ident])
+        else:
+            resource = resources[ident]
+            actual_before = resource["balance"] if resource["kind"] == "points" else money(resource["balance"], "balance")
+            if resource["kind"] == "money":
+                expected_before = money(expected_before, "expected_balance")
+        check(actual_before == expected_before, "该步骤依赖先前结算已消耗的自动优惠额度；请按步骤记账，或先核实实际余额并重算")
+    resource_units = {}
+    for ident, expected_value in expected_resources.items():
+        resource = resources[ident]
+        used = money(actual_resources[ident], "resource_usage") if resource["kind"] == "money" else integer(actual_resources[ident], "resource_usage", 0, 1_000_000_000)
+        planned = money(expected_value, "expected_resource_usage") if resource["kind"] == "money" else expected_value
+        check(used == planned, "实际余额/积分消耗与方案不同，请先核对资料并重算")
+        resource_units[ident] = used
     result = deepcopy(state)
     advance(result, "purchase", receipt)
     quantities = Counter(x["id"] for x in order["items"])
@@ -452,11 +498,18 @@ def record_purchase(state, plan_name, order_number, receipt):
         if item["quantity"] > 0:
             remaining.append(item)
     result["cart"]["items"] = remaining
+    applied_ids = {p["id"] for p in order["promotions"]}
     for rule in result["cart"]["promotions"]:
-        if rule["id"] in coupons and rule.get("total_uses", 1) is not None:
-            rule["total_uses"] = rule.get("total_uses", 1) - 1
+        if rule["id"] in applied_ids and uses_limit(rule) is not None:
+            rule["total_uses"] = uses_limit(rule) - 1
             check(rule["total_uses"] >= 0, "券剩余次数不足")
             result["coupon_balances"][rule["id"]] = rule["total_uses"]
+    for resource in result["cart"].get("resources", []):
+        if resource["id"] in resource_units:
+            balance = money(resource["balance"], "resource.balance") if resource["kind"] == "money" else resource["balance"]
+            balance -= resource_units[resource["id"]]
+            check(balance >= 0, "共享资源余额不足")
+            resource["balance"] = fmt(balance) if resource["kind"] == "money" else balance
     clean_cart(result["cart"])
     ids = {x["id"] for x in remaining if not x.get("required", True)}
     result["preferences"]["approved_optional_ids"] = [x for x in result["preferences"]["approved_optional_ids"] if x in ids]
@@ -464,7 +517,8 @@ def record_purchase(state, plan_name, order_number, receipt):
     result["purchases"].append({"id": receipt["id"], "recorded_at": now(), "from_revision": state["revision"],
                                 "plan": plan_name, "order": deepcopy(order), "coupon_ids": coupons,
                                 "actual_pay_now": fmt(actual), "deposit_paid": fmt(paid),
-                                "actual_total_spend": fmt(actual + paid), "source": receipt["source"]})
+                                "actual_total_spend": fmt(actual + paid), "source": receipt["source"],
+                                "resource_usage": deepcopy(actual_resources)})
     if actual != money(order["pay_now"], "pay_now"):
         result["questions"].append({"id": f"purchase:{receipt['id']}:difference", "blocking": True,
                                     "text": "实际结算金额与方案不同，请核对差异是否影响剩余商品、运费或优惠，再继续计算。",
@@ -560,6 +614,10 @@ def render_comparison(result):
                     lines.append(f"    {promo['name']}：减 ¥{promo['actual_discount']}")
                 for fee in order["shipping"]:
                     lines.append(f"    {fee['shop']}运费 ¥{fee['fee']}")
+                    if fee.get("pay_now", fee["fee"]) != fee["fee"]:
+                        lines.append(f"    抵扣后运费还需付 ¥{fee['pay_now']}")
+                for ident, amount in order.get("resource_usage", {}).items():
+                    lines.append(f"    消耗共享权益 {ident}：{amount}")
     for q in result.get("questions", []):
         lines.append(("待补充：" if q["blocking"] else "待核实：") + q["text"])
     lines.extend("条件：" + x for x in result.get("assumptions", []))

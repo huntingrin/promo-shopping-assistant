@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "label": "假设案例：比例折扣、红包与积分",
+  "items": [
+    {
+      "id": "demo-item",
+      "name": "演示商品",
+      "spec": "单件",
+      "platform": "taobao",
+      "marketplace": "tmall",
+      "shop": "A",
+      "price": "100.00",
+      "price_kind": "before_order_promotions",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    }
+  ],
+  "shipping": [
+    {
+      "platform": "taobao",
+      "shop": "A",
+      "fee": "0",
+      "basis": "price",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    }
+  ],
+  "promotions": [
+    {
+      "id": "official",
+      "name": "假设官方立减15%",
+      "platform": "taobao",
+      "mode": "automatic",
+      "kind": "percentage",
+      "stage": "goods",
+      "threshold": "0",
+      "basis": "price",
+      "rate": "0.15",
+      "discount_basis": "price",
+      "rounding": "half_up",
+      "rounding_scope": "item",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    },
+    {
+      "id": "vip",
+      "name": "假设会员95折",
+      "platform": "taobao",
+      "mode": "automatic",
+      "kind": "percentage",
+      "stage": "goods",
+      "threshold": "0",
+      "basis": "price",
+      "rate": "0.05",
+      "discount_basis": "remaining",
+      "rounding": "half_up",
+      "rounding_scope": "item",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    },
+    {
+      "id": "red",
+      "name": "假设10元红包",
+      "platform": "taobao",
+      "mode": "selectable",
+      "kind": "balance",
+      "stage": "payment",
+      "threshold": "0",
+      "basis": "payable",
+      "resource_id": "red",
+      "allocation": "maximum",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    },
+    {
+      "id": "coins",
+      "name": "假设积分抵扣",
+      "platform": "taobao",
+      "mode": "selectable",
+      "kind": "balance",
+      "stage": "payment",
+      "threshold": "0",
+      "basis": "payable",
+      "rate": "0.05",
+      "discount_basis": "payable",
+      "rounding": "floor",
+      "rounding_scope": "checkout",
+      "resource_id": "coins",
+      "allocation": "maximum",
+      "units_per_step": 1,
+      "step_value": "0.01",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    }
+  ],
+  "resources": [
+    {
+      "id": "red",
+      "kind": "money",
+      "balance": "10.00",
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    },
+    {
+      "id": "coins",
+      "kind": "points",
+      "balance": 500,
+      "source": {
+        "kind": "demo",
+        "note": "假设输入，仅用于验证，非平台当前活动。",
+        "observed_at": "2026-10-21"
+      }
+    }
+  ],
+  "assumptions": [
+    "全部为假设参数，不代表当前淘宝天猫活动。",
+    "示例先立减15%，再按剩余商品金额减5%，逐件四舍五入；实际需核实基数及舍入。",
+    "红包不抵运费；积分示例假设每1积分抵0.01元、最多抵当前应付5%，不是通用兑换规则。"
+  ]
+}

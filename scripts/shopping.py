@@ -45,6 +45,7 @@ def parser():
     solve.add_argument("--format", choices=("json", "text"), default="json")
     demo = sub.add_parser("demo", help="运行390/345/375元假设案例，不写入任务")
     demo.add_argument("--format", choices=("json", "text"), default="text")
+    demo.add_argument("--discounts", action="store_true", help="运行比例折扣、红包与积分叠加的假设案例")
     return root
 
 
@@ -67,10 +68,10 @@ def main(argv=None):
     args = parser().parse_args(argv)
     try:
         if args.command in ("solve", "demo"):
-            path = (Path(__file__).resolve().parents[1] / "fixtures/demo-cart.json"
+            path = (Path(__file__).resolve().parents[1] / ("fixtures/discounts.json" if args.discounts else "fixtures/demo-cart.json")
                     if args.command == "demo" else args.input)
             state = new_state(load_json(path), title="假设案例" if args.command == "demo" else None)
-            approved = ["cloth"] if args.command == "demo" else args.approve
+            approved = ([] if args.discounts else ["cloth"]) if args.command == "demo" else args.approve
             state["preferences"].update(allow_addons=bool(approved), approved_optional_ids=approved,
                                          preferred=getattr(args, "prefer", "cheapest"))
             output = safe_compare(state, getattr(args, "time_limit", 15))

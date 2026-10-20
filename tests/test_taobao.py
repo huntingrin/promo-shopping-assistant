@@ -44,7 +44,7 @@ class TaobaoTests(unittest.TestCase):
         state = w.new_state(cart(promotions=[coupon()]))
         out = w.comparison(state)
         self.assertEqual(out["market"], "taobao-tmall")
-        self.assertEqual(out["rule_profile"], "taobao-tmall-v1")
+        self.assertEqual(out["rule_profile"], "taobao-tmall-v2")
         self.assertEqual(out["minimum_checkouts"], 1)
         self.assertEqual(out["plans"]["cheapest"]["summary"]["total_spend"], "170.00")
         self.assertEqual({x["platform"] for x in state["cart"]["items"]}, {"taobao"})
