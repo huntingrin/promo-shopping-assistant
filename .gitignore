@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+dist/
+tasks/
+session.json
+.shopping.lock
+.session-*.json
+.coverage

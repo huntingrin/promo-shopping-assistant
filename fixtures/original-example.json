@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "label": "假设案例：拆单 + 店铺满减 + 品类券 + 凑单品",
+  "assumptions": [
+    "以下均为演示规则，不对应2026年任何平台的真实双十一活动。",
+    "跨店每满200减30，但每次结算封顶减30；所有商品均可参加。",
+    "店铺满减、跨店满减、券门槛均按优惠前活动价判断，可叠加。",
+    "所有凑单品买下后保留，不计算退货或返券收益。"
+  ],
+  "items": [
+    {"id": "cream", "name": "面霜", "platform": "demo", "shop": "A", "category": "beauty", "price": "180.00", "original_price": "220.00"},
+    {"id": "cleanser", "name": "洁面", "platform": "demo", "shop": "A", "category": "beauty", "price": "120.00", "original_price": "150.00"},
+    {"id": "lamp", "name": "台灯", "platform": "demo", "shop": "B", "category": "home", "price": "190.00", "original_price": "230.00"},
+    {"id": "cloth", "name": "清洁布（可选凑单）", "platform": "demo", "shop": "B", "category": "home", "price": "10.00", "required": false},
+    {"id": "box", "name": "收纳盒（可选凑单）", "platform": "demo", "shop": "B", "category": "home", "price": "35.00", "required": false}
+  ],
+  "promotions": [
+    {"id": "shop-A", "name": "A店满300减50", "platform": "demo", "mode": "automatic", "shops": ["A"], "threshold": "300.00", "discount": "50.00", "basis": "threshold_price"},
+    {"id": "cross", "name": "跨店每满200减30，每次结算封顶30", "platform": "demo", "mode": "automatic", "threshold": "200.00", "discount": "30.00", "repeat": true, "cap": "30.00", "basis": "threshold_price"},
+    {"id": "beauty", "name": "美妆满300减20券（仅1张）", "platform": "demo", "mode": "selectable", "categories": ["beauty"], "threshold": "300.00", "discount": "20.00", "basis": "threshold_price", "total_uses": 1},
+    {"id": "shop-B", "name": "B店满200减25券（仅1张）", "platform": "demo", "mode": "selectable", "shops": ["B"], "threshold": "200.00", "discount": "25.00", "basis": "threshold_price", "total_uses": 1}
+  ],
+  "shipping": [
+    {"platform": "demo", "shop": "A", "fee": "0.00", "basis": "price"},
+    {"platform": "demo", "shop": "B", "fee": "0.00", "basis": "price"}
+  ]
+}

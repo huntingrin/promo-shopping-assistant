@@ -1,0 +1,24 @@
+{
+  "snapshot_date": "2026-10-20",
+  "origin": "../double11/promo-simulator-research/promo-order-optimizer",
+  "files": [
+    {
+      "path": "scripts/optimize.py",
+      "source": "../double11/promo-simulator-research/promo-order-optimizer/scripts/optimize.py",
+      "sha256": "86954eb88c96f1162f894fd05d736ede2ce4765b7bdfde7535c26162f61cbf05",
+      "modified": false
+    },
+    {
+      "path": "references/input-spec.md",
+      "source": "../double11/promo-simulator-research/promo-order-optimizer/references/input-spec.md",
+      "sha256": "47708edf55bbd02d42d576ac76ae75be0512902c6e1b14558bcaea2ae38c8904",
+      "modified": false
+    },
+    {
+      "path": "fixtures/presale.json",
+      "source": "../double11/promo-simulator-research/promo-order-optimizer/assets/presale.json",
+      "sha256": "a9368a793ce76a49663ff149698669bc5916f676e7398bb59ddc8e9b38c1b157",
+      "modified": false
+    }
+  ]
+}

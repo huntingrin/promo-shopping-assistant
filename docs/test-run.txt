@@ -1,0 +1,73 @@
+Python: 3.14.6
+Platform: Darwin 25.3.0 arm64
+
+$ python3 -m unittest discover -s tests -v
+
+test_account_coupon_cannot_be_reused (test_optimizer.OptimizerTests.test_account_coupon_cannot_be_reused) ... ok
+test_automatic_discount_is_mandatory (test_optimizer.OptimizerTests.test_automatic_discount_is_mandatory) ... ok
+test_cent_allocation_conservation_and_floor (test_optimizer.OptimizerTests.test_cent_allocation_conservation_and_floor) ... ok
+test_cli_stdin_decimal_and_json_error_protocol (test_optimizer.OptimizerTests.test_cli_stdin_decimal_and_json_error_protocol) ... ok
+test_complete_example (test_optimizer.OptimizerTests.test_complete_example) ... ok
+test_deposit_is_protected_per_item (test_optimizer.OptimizerTests.test_deposit_is_protected_per_item) ... ok
+test_discount_cannot_refund_deposit (test_optimizer.OptimizerTests.test_discount_cannot_refund_deposit) ... ok
+test_filler_actual_cost_and_rejection (test_optimizer.OptimizerTests.test_filler_actual_cost_and_rejection) ... ok
+test_global_coupon_assignment_and_split (test_optimizer.OptimizerTests.test_global_coupon_assignment_and_split) ... ok
+test_item_exclusivity (test_optimizer.OptimizerTests.test_item_exclusivity) ... ok
+test_limits_never_claim_optimal (test_optimizer.OptimizerTests.test_limits_never_claim_optimal) ... ok
+test_parallel_and_sequential_thresholds (test_optimizer.OptimizerTests.test_parallel_and_sequential_thresholds) ... ok
+test_platform_and_checkout_groups (test_optimizer.OptimizerTests.test_platform_and_checkout_groups) ... ok
+test_presale_total_and_tail_are_separate (test_optimizer.OptimizerTests.test_presale_total_and_tail_are_separate) ... ok
+test_random_carts_against_independent_exhaustive_oracle (test_optimizer.OptimizerTests.test_random_carts_against_independent_exhaustive_oracle) ... ok
+test_rejects_ambiguous_or_invalid_inputs (test_optimizer.OptimizerTests.test_rejects_ambiguous_or_invalid_inputs) ... ok
+test_repeat_cycles_consume_one_coupon (test_optimizer.OptimizerTests.test_repeat_cycles_consume_one_coupon) ... ok
+test_scope_does_not_count_ineligible_items (test_optimizer.OptimizerTests.test_scope_does_not_count_ineligible_items) ... ok
+test_shipping_can_reverse_coupon_benefit (test_optimizer.OptimizerTests.test_shipping_can_reverse_coupon_benefit) ... ok
+test_shipping_filler (test_optimizer.OptimizerTests.test_shipping_filler) ... ok
+test_ties_prefer_no_filler_then_fewer_orders (test_optimizer.OptimizerTests.test_ties_prefer_no_filler_then_fewer_orders) ... ok
+test_two_copies_of_coupon (test_optimizer.OptimizerTests.test_two_copies_of_coupon) ... ok
+test_copy_is_self_contained_and_demo_creates_no_tasks (test_workflow.CLITests.test_copy_is_self_contained_and_demo_creates_no_tasks) ... ok
+test_failed_compute_replaces_previous_result_with_no_totals (test_workflow.CLITests.test_failed_compute_replaces_previous_result_with_no_totals) ... ok
+test_full_task_lifecycle_from_another_working_directory (test_workflow.CLITests.test_full_task_lifecycle_from_another_working_directory) ... ok
+test_incomplete_and_invalid_json_have_structured_exit_codes (test_workflow.CLITests.test_incomplete_and_invalid_json_have_structured_exit_codes) ... ok
+test_malformed_cart_shape_returns_json_error_without_traceback (test_workflow.CLITests.test_malformed_cart_shape_returns_json_error_without_traceback) ... ok
+test_atomic_roundtrip_and_busy_task_lock (test_workflow.WorkflowTests.test_atomic_roundtrip_and_busy_task_lock) ... ok
+test_blanket_permission_does_not_approve_arbitrary_products (test_workflow.WorkflowTests.test_blanket_permission_does_not_approve_arbitrary_products) ... ok
+test_consumed_coupon_balance_survives_rule_cleanup_and_reintroduction (test_workflow.WorkflowTests.test_consumed_coupon_balance_survives_rule_cleanup_and_reintroduction) ... ok
+test_draft_missing_price_preserves_other_products_and_resumes (test_workflow.WorkflowTests.test_draft_missing_price_preserves_other_products_and_resumes) ... ok
+test_explicit_addon_consent_three_options_and_global_savings (test_workflow.WorkflowTests.test_explicit_addon_consent_three_options_and_global_savings) ... ok
+test_fewest_can_cost_more_than_global_original_and_signed_cents_are_correct (test_workflow.WorkflowTests.test_fewest_can_cost_more_than_global_original_and_signed_cents_are_correct) ... ok
+test_history_keeps_old_input_and_result_but_current_is_invalidated (test_workflow.WorkflowTests.test_history_keeps_old_input_and_result_but_current_is_invalidated) ... ok
+test_incomplete_coupon_is_never_silently_dropped (test_workflow.WorkflowTests.test_incomplete_coupon_is_never_silently_dropped) ... ok
+test_manual_edit_fingerprint_hides_stale_result (test_workflow.WorkflowTests.test_manual_edit_fingerprint_hides_stale_result) ... ok
+test_missing_shipping_blocks_instead_of_assuming_free (test_workflow.WorkflowTests.test_missing_shipping_blocks_instead_of_assuming_free) ... ok
+test_missing_sources_are_visible (test_workflow.WorkflowTests.test_missing_sources_are_visible) ... ok
+test_multi_platform_minimum_checkouts (test_workflow.WorkflowTests.test_multi_platform_minimum_checkouts) ... ok
+test_no_addons_by_default_and_identical_choices_merge (test_workflow.WorkflowTests.test_no_addons_by_default_and_identical_choices_merge) ... ok
+test_optional_incomplete_product_does_not_block_unapproved_cart (test_workflow.WorkflowTests.test_optional_incomplete_product_does_not_block_unapproved_cart) ... ok
+test_over_limit_is_retained_and_recoverable (test_workflow.WorkflowTests.test_over_limit_is_retained_and_recoverable) ... ok
+test_presale_total_paid_and_due_are_separate (test_workflow.WorkflowTests.test_presale_total_paid_and_due_are_separate) ... ok
+test_price_quantity_selection_and_coupon_changes_affect_calculation (test_workflow.WorkflowTests.test_price_quantity_selection_and_coupon_changes_affect_calculation) ... ok
+test_purchase_debits_coupons_and_replans_remaining_goods (test_workflow.WorkflowTests.test_purchase_debits_coupons_and_replans_remaining_goods) ... ok
+test_purchase_difference_stops_remaining_planning_until_reconciled (test_workflow.WorkflowTests.test_purchase_difference_stops_remaining_planning_until_reconciled) ... ok
+test_purchase_requires_current_plan_actual_coupons_and_idempotency (test_workflow.WorkflowTests.test_purchase_requires_current_plan_actual_coupons_and_idempotency) ... ok
+test_question_resolution_preserves_cart (test_workflow.WorkflowTests.test_question_resolution_preserves_cart) ... ok
+test_rejecting_addons_restores_original (test_workflow.WorkflowTests.test_rejecting_addons_restores_original) ... ok
+test_revision_guard_and_original_state_remains_untouched (test_workflow.WorkflowTests.test_revision_guard_and_original_state_remains_untouched) ... ok
+test_scope_typo_is_invalid_rather_than_silent_zero_discount (test_workflow.WorkflowTests.test_scope_typo_is_invalid_rather_than_silent_zero_discount) ... ok
+test_search_limit_does_not_return_partial_plans (test_workflow.WorkflowTests.test_search_limit_does_not_return_partial_plans) ... ok
+test_shared_coupon_is_consumed_globally_after_partial_purchase (test_workflow.WorkflowTests.test_shared_coupon_is_consumed_globally_after_partial_purchase) ... ok
+
+----------------------------------------------------------------------
+Ran 53 tests in 0.790s
+
+OK
+
+exit=0
+
+$ python3 quick_validate.py <skill-dir>
+Skill is valid!
+
+
+exit=0
+
+Upstream snapshot SHA-256: all 3 files match recorded originals.
