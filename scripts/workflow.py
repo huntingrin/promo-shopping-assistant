@@ -15,14 +15,17 @@ import uuid
 
 from optimize import (InputError, SearchLimit, check, keys, string, integer, boolean,
                       money, fmt, parse_scenario, optimize, no_duplicate_keys)
+from taobao import (MARKET, PROFILE_VERSION, normalise_cart, normalise_row,
+                    marketplace_matches, compile_cart)
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 ITEM_FIELDS = {"id", "name", "spec", "platform", "shop", "category", "tags",
                "checkout_group", "price", "original_price", "threshold_price",
-               "presale_discount", "deposit_paid", "required", "quantity", "source"}
+               "presale_discount", "deposit_paid", "required", "quantity", "source",
+               "marketplace", "price_kind"}
 PROMO_FIELDS = {"id", "name", "platform", "mode", "threshold", "discount", "basis",
                 "repeat", "cap", "total_uses", "exclusive_group", "exclusive_scope",
-                "item_ids", "shops", "categories", "tags", "source"}
+                "item_ids", "shops", "categories", "tags", "source", "marketplaces"}
 SHIP_FIELDS = {"platform", "shop", "fee", "free_threshold", "basis", "source"}
 
 
@@ -39,6 +42,7 @@ def load_json(path):
 
 def fingerprint(state):
     payload = {k: state[k] for k in ("cart", "preferences", "questions", "data_as_of", "coupon_balances")}
+    payload["rule_profile"] = PROFILE_VERSION
     return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False,
                                      separators=(",", ":")).encode()).hexdigest()
 
@@ -77,6 +81,7 @@ def clean_cart(cart):
 
 def matches(rule, item):
     return (rule.get("platform") == item.get("platform")
+            and marketplace_matches(rule, item)
             and (not rule.get("item_ids") or item["id"] in rule["item_ids"])
             and (not rule.get("shops") or item.get("shop") in rule["shops"])
             and (not rule.get("categories") or item.get("category", "general") in rule["categories"])
@@ -102,6 +107,8 @@ def validate_cart(cart):
         for row in cart.get(field, []):
             required = {"platform", "shop"} if field == "shipping" else {"id"}
             keys(row, allowed, required, field)
+            normalise_row(field, row)
+            check(row.get("platform") in (None, "taobao"), "任务平台尚未规范化，请通过new/update导入淘宝天猫资料")
             for key in required:
                 string(row[key], f"{field}.{key}")
             ident = (row["platform"], row["shop"]) if field == "shipping" else row["id"]
@@ -140,6 +147,11 @@ def validate_cart(cart):
                 check(row["mode"] in ("automatic", "selectable"), "mode: 仅支持 automatic/selectable")
     for rule in cart["promotions"]:
         check(set(rule.get("item_ids", [])) <= identities["items"], "优惠 item_ids 包含未知商品")
+    store_types = {}
+    for item in cart["items"]:
+        if item.get("shop") is not None and item.get("marketplace") is not None:
+            known = store_types.setdefault(item["shop"], item["marketplace"])
+            check(known == item["marketplace"], "同一店铺ID出现淘宝店/天猫店类型冲突，请核对店铺标识")
 
 
 def validate_state(state):
@@ -175,7 +187,7 @@ def new_state(cart=None, title=None):
     state = {"version": 1, "program_version": VERSION, "id": uuid.uuid4().hex,
              "revision": 1, "title": title or "购物算账", "created_at": timestamp,
              "updated_at": timestamp, "data_as_of": timestamp,
-             "cart": deepcopy(cart) if cart is not None else
+             "cart": normalise_cart(cart) if cart is not None else
                      {"version": 1, "items": [], "promotions": [], "shipping": []},
              "preferences": {"allow_addons": False, "approved_optional_ids": [], "preferred": "cheapest"},
              "questions": [], "purchases": [], "history": [], "latest_result": None}
@@ -188,8 +200,7 @@ def new_state(cart=None, title=None):
 
 def project(cart, selected):
     result = deepcopy(cart)
-    result["items"] = [{k: v for k, v in x.items() if k != "spec"}
-                       for x in result["items"] if x["id"] in selected]
+    result["items"] = [x for x in result["items"] if x["id"] in selected]
     clean_cart(result)
     return result
 
@@ -218,6 +229,8 @@ def readiness(state):
         for key, name in (("platform", "平台"), ("shop", "店铺"), ("price", "优惠前活动价/预售总价")):
             if item.get(key) is None:
                 add(f"item:{item['id']}:{key}", f"请补充{item.get('name', item['id'])}的{name}。")
+        if item.get("price_kind", "before_order_promotions") != "before_order_promotions":
+            add(f"item:{item['id']}:price_kind", f"{item.get('name', item['id'])}当前是券后价、尾款或未知价格口径，请补充订单优惠前的活动价/预售总价，避免重复减券。")
         for key, label in (("deposit_paid", "已付定金"), ("presale_discount", "预售立减"),
                            ("threshold_price", "优惠门槛计入金额"), ("original_price", "原价")):
             if key in item and item[key] is None:
@@ -232,6 +245,10 @@ def readiness(state):
                 add(f"promotion:{rule['id']}:{key}", f"优惠“{rule.get('name', rule['id'])}”缺少{labels[key]}，请核实使用说明。")
         if not rule.get("source"):
             add(f"source:promotion:{rule['id']}", f"优惠“{rule.get('name', rule['id'])}”来源尚未记录。", False)
+        if rule.get("marketplaces"):
+            for item in cart["items"]:
+                if item.get("marketplace") is None and matches(rule, item):
+                    add(f"marketplace:{rule['id']}:{item['id']}", f"请确认{item.get('name', item['id'])}来自淘宝店还是天猫店，才能判断“{rule.get('name', rule['id'])}”是否适用。")
     shipping = {(x["platform"], x["shop"]): x for x in cart.get("shipping", [])}
     for platform, shop in sorted({(x["platform"], x["shop"]) for x in cart["items"]
                                  if x.get("platform") is not None and x.get("shop") is not None}):
@@ -257,6 +274,7 @@ def advance(state, operation, payload):
                              "coupon_balances": deepcopy(state["coupon_balances"]),
                              "result": deepcopy(state["latest_result"])})
     state["revision"] += 1
+    state["program_version"] = VERSION
     state["updated_at"] = now()
     state["latest_result"] = None
 
@@ -276,6 +294,7 @@ def update_state(state, patch):
         ident_fields = ("platform", "shop") if field == "shipping" else ("id",)
         seen = set()
         for row in incoming:
+            row = normalise_row(field, row)
             keys(row, fields, set(ident_fields), field)
             for key in ident_fields:
                 string(row[key], key)
@@ -335,7 +354,8 @@ def comparison(state, time_limit=15.0, state_limit=200_000):
     check(isinstance(time_limit, (float, int)) and 0 < time_limit <= 300, "time_limit: 应为0到300秒之间")
     integer(state_limit, "state_limit", 1, 1_000_000)
     validate_state(state)
-    result = {"version": 1, "revision": state["revision"], "input_fingerprint": fingerprint(state),
+    result = {"version": 1, "market": MARKET, "rule_profile": PROFILE_VERSION,
+              "revision": state["revision"], "input_fingerprint": fingerprint(state),
               "generated_at": now(), "data_as_of": state["data_as_of"], "questions": readiness(state),
               "assumptions": state["cart"].get("assumptions", []), "plans": {}, "choices": []}
     already_spent = sum(money(x["actual_total_spend"], "purchase.total") for x in state["purchases"])
@@ -365,13 +385,14 @@ def comparison(state, time_limit=15.0, state_limit=200_000):
             left = deadline - time.monotonic()
             if left <= 0:
                 raise SearchLimit("方案比较达到总时间上限，本次未完成；请缩小范围后重试")
-            cache[key] = optimize(input_cart, time_limit=left, state_limit=state_limit)
+            cache[key] = optimize(compile_cart(input_cart), time_limit=left, state_limit=state_limit)
         solved = deepcopy(cache[key])
         for order in solved["orders"]:
             for item in order["items"]:
                 row = next(x for x in state["cart"]["items"] if x["id"] == item["id"])
                 item["spec"] = row.get("spec") or ""
                 item["source"] = row.get("source")
+                item["marketplace"] = row.get("marketplace")
         result["plans"][name] = solved
     baseline = money(result["plans"]["original"]["summary"]["total_spend"], "baseline")
     signatures = {}
@@ -472,6 +493,8 @@ def task_lock(directory):
 
 def read_state(directory):
     state = load_json(Path(directory) / "session.json")
+    if isinstance(state, dict) and "cart" in state:
+        state["cart"] = normalise_cart(state["cart"])
     validate_state(state)
     return state
 
@@ -527,10 +550,11 @@ def render_comparison(result):
             if result.get("scope") == "remaining_cart":
                 lines.append(f"连同已购，整次购物预计总支出 ¥{s['task_total_spend']}")
             for order in plan["orders"]:
-                lines.append(f"  第{order['order']}次结算｜{order['platform']}｜应付 ¥{order['pay_now']}")
-                grouped = Counter((x["shop"], x["id"], x["name"], x["spec"], x["required"]) for x in order["items"])
-                for (shop, _, name, spec, required), quantity in grouped.items():
-                    lines.append(f"    {shop}：{name}{' · ' + spec if spec else ''} ×{quantity}"
+                lines.append(f"  第{order['order']}次结算｜淘宝/天猫｜应付 ¥{order['pay_now']}")
+                grouped = Counter((x["shop"], x["id"], x["name"], x["spec"], x["required"], x["marketplace"]) for x in order["items"])
+                for (shop, _, name, spec, required, marketplace), quantity in grouped.items():
+                    store_type = {"taobao": "淘宝店", "tmall": "天猫店"}.get(marketplace, "店铺类型待核实")
+                    lines.append(f"    {shop}（{store_type}）：{name}{' · ' + spec if spec else ''} ×{quantity}"
                                  + ("（已同意的加购品）" if not required else ""))
                 for promo in order["promotions"]:
                     lines.append(f"    {promo['name']}：减 ¥{promo['actual_discount']}")

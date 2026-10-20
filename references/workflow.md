@@ -2,6 +2,8 @@
 
 Python 3.10+，无依赖；任意工作目录均可执行。以下的 `<skill-dir>` 指包含 `SKILL.md` 的目录。输入字段区分大小写，金额推荐十进制字符串，数量和版本为整数。程序不直接处理图片：宿主 Agent 将材料整理为下述资料。
 
+v0.2 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tmall.md](taobao-tmall.md) 核实当前规则；原 `input-spec.md` 是保留的通用内核协议，不能据其任意平台字段推定产品支持其他平台。
+
 ## 命令
 
 ```text
@@ -20,7 +22,18 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 
 ## 初始购物资料
 
-完整字段与计算语义见 [input-spec.md](input-spec.md)。包装层额外接受商品 `spec`（规格字符串），把它带入购买步骤，求解前移除此展示字段。其他商品及优惠字段沿用内核协议，不接受未知规则字段。
+完整计算语义见 [input-spec.md](input-spec.md)。包装层额外接受商品 `spec`（规格字符串）、`marketplace`（淘宝/天猫店铺类型）和 `price_kind`（价格口径），优惠额外接受 `marketplaces` 范围条件；求解前将这些元数据编译为内核可用的输入。其他商品及优惠字段沿用内核协议，不接受未知规则字段。
+
+| 字段 | 淘宝天猫适配语义 |
+| --- | --- |
+| 商品 `platform` | `taobao` 是统一交易域；输入 `tmall` 自动转换为 `taobao` 并标记天猫店；其他平台拒绝 |
+| 商品 `marketplace` | 可填 `taobao` 或 `tmall`；未知可省略/设为 `null`，影响限定店铺类型的用券时会补问 |
+| 商品 `price_kind` | `before_order_promotions` 符合原计算协议；`after_coupons` / `tail_payment` / `unknown` 均阻止求解。省略表示调用者按原协议提供优惠前价格；Agent 提取截图时应显式标记 |
+| 优惠 `platform` | `taobao` 可涵盖淘宝及天猫店；`tmall` 简写等价于 `platform=taobao, marketplaces=["tmall"]` |
+| 优惠 `marketplaces` | 与店铺、商品ID、品类、标签共同以 AND 匹配；淘宝店专属写 `["taobao"]`，天猫专属写 `["tmall"]` |
+| 运费 `platform` | 淘宝/天猫均归入 `taobao` 交易域，按实际唯一店铺标识配置，不能为同店重复配置 |
+
+同交易域不自动保证同次能付款，`checkout_group` 仍表示已核实的可合并阶段/渠道。天猫与淘宝店的类型不单独导致拆单。适配版本保存在结果的 `market=taobao-tmall` 和 `rule_profile=taobao-tmall-v1` 中，并计入输入指纹，旧适配版本的缓存不能冒充新结果。
 
 最小可计算例：
 
@@ -28,13 +41,14 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 {
   "version": 1,
   "items": [
-    {"id": "lamp", "name": "台灯", "spec": "暖白光", "platform": "demo", "shop": "B",
+    {"id": "lamp", "name": "台灯", "spec": "暖白光", "platform": "taobao", "marketplace": "tmall", "shop": "B",
+     "price_kind": "before_order_promotions",
      "price": "199.00", "quantity": 1,
      "source": {"kind": "user", "text": "台灯199元，1件", "observed_at": "2026-10-20"}}
   ],
   "promotions": [],
   "shipping": [
-    {"platform": "demo", "shop": "B", "fee": "0.00", "basis": "price",
+    {"platform": "taobao", "shop": "B", "fee": "0.00", "basis": "price",
      "source": {"kind": "user", "text": "确认包邮"}}
   ],
   "assumptions": ["用户确认无其他优惠，台灯199元为优惠前活动价。"]
@@ -139,6 +153,12 @@ python3 <skill-dir>/scripts/shopping.py compare <task-dir>
 每次只记录一个结算步骤；之后旧方案失效，先重新计算再记录下一次，避免顺序变化后误用旧订单序号。凭据ID不能重复；实付金额不含此前已付定金，程序额外记录完整支出。
 
 商品数量按本次结算扣除；原清单全部买完后返回 `complete`，剩余未买的可选候选不强制购买。若实付金额与预计不同，会生成阻塞差异问题；查清是否影响剩余规则后，通过更新和 `resolve_questions` 解除。
+
+## 从v0.1继续任务
+
+仍使用 `session.json` v1。旧任务的淘宝/天猫别名在读取时规范化，旧结果因规则适配指纹变化而失效，需要重新计算。普通 `show` 不改写原文件；下一次更新/计算会原子保存规范化的资料。
+
+原来使用 `demo`、`p`、`q` 等虚构平台或其他真实平台的任务不属于新产品范围，会明确拒绝；源文件保留，不自动把它们冒充淘宝资料。假设演示请重新使用v0.2附带的淘宝天猫格式案例。低层 `optimize.py` 仅作为原算法快照与测试入口保留，面向用户使用 `shopping.py`。
 
 ## 本地文件与并发
 

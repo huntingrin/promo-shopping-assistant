@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""大促算账助手：离线方案比较与可恢复任务。Python 3.10+，无需第三方依赖。"""
+"""淘宝天猫算账助手：离线方案比较与可恢复任务。Python 3.10+，无需第三方依赖。"""
 from __future__ import annotations
 
 import argparse
@@ -11,6 +11,7 @@ from workflow import (VERSION, InputError, SearchLimit, check, new_state, load_j
                       task_lock, read_state, save_state, update_state, comparison,
                       record_purchase, view_state, render_state, render_comparison,
                       fingerprint, now)
+from taobao import MARKET, PROFILE_VERSION
 
 
 def parser():
@@ -56,6 +57,7 @@ def safe_compare(state, time_limit):
         return comparison(state, time_limit=time_limit)
     except (InputError, SearchLimit) as exc:
         return {"status": "search_limit" if isinstance(exc, SearchLimit) else "invalid_input",
+                "market": MARKET, "rule_profile": PROFILE_VERSION,
                 "error": str(exc), "revision": state["revision"], "input_fingerprint": fingerprint(state),
                 "generated_at": now(), "data_as_of": state["data_as_of"],
                 "plans": {}, "choices": [], "questions": []}
@@ -88,6 +90,7 @@ def main(argv=None):
                         state = update_state(state, load_json(args.patch))
                         save_state(directory, state)
                     elif args.command == "compare":
+                        state["program_version"] = VERSION
                         state["latest_result"] = safe_compare(state, args.time_limit)
                         save_state(directory, state)
                     elif args.command == "purchase":

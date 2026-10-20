@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "label": "假设案例：已付定金、预售立减与尾款",
+  "assumptions": [
+    "预售价1000，预售立减100，已付定金100，优惠门槛按900计算。",
+    "两种优惠均可用于尾款，定金不可被优惠退回；可叠加。"
+  ],
+  "items": [
+    {
+      "id": "device",
+      "name": "预售电器",
+      "platform": "taobao",
+      "shop": "C",
+      "price": "1000.00",
+      "original_price": "1200.00",
+      "presale_discount": "100.00",
+      "deposit_paid": "100.00",
+      "threshold_price": "900.00",
+      "checkout_group": "presale-window-1",
+      "source": {
+        "kind": "demo",
+        "note": "假设预售案例，不是当前活动报价。"
+      },
+      "marketplace": "tmall",
+      "price_kind": "before_order_promotions"
+    }
+  ],
+  "promotions": [
+    {
+      "id": "cross",
+      "name": "每满300减30",
+      "platform": "taobao",
+      "mode": "automatic",
+      "threshold": "300.00",
+      "discount": "30.00",
+      "repeat": true,
+      "basis": "threshold_price",
+      "source": {
+        "kind": "demo",
+        "note": "假设预售案例，不是当前活动报价。"
+      }
+    },
+    {
+      "id": "coupon",
+      "name": "满900减90券",
+      "platform": "taobao",
+      "mode": "selectable",
+      "threshold": "900.00",
+      "discount": "90.00",
+      "basis": "threshold_price",
+      "source": {
+        "kind": "demo",
+        "note": "假设预售案例，不是当前活动报价。"
+      }
+    }
+  ],
+  "shipping": [
+    {
+      "platform": "taobao",
+      "shop": "C",
+      "fee": "0.00",
+      "basis": "price",
+      "source": {
+        "kind": "demo",
+        "note": "假设预售案例，不是当前活动报价。"
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+Program: promo-shopping-assistant 0.2.0
 Python: 3.14.6
 Platform: Darwin 25.3.0 arm64
 
@@ -25,6 +26,20 @@ test_shipping_can_reverse_coupon_benefit (test_optimizer.OptimizerTests.test_shi
 test_shipping_filler (test_optimizer.OptimizerTests.test_shipping_filler) ... ok
 test_ties_prefer_no_filler_then_fewer_orders (test_optimizer.OptimizerTests.test_ties_prefer_no_filler_then_fewer_orders) ... ok
 test_two_copies_of_coupon (test_optimizer.OptimizerTests.test_two_copies_of_coupon) ... ok
+test_coupon_after_price_or_tail_payment_is_not_discounted_again (test_taobao.TaobaoTests.test_coupon_after_price_or_tail_payment_is_not_discounted_again) ... ok
+test_coupon_counts_are_shared_across_store_types_and_checkout_groups (test_taobao.TaobaoTests.test_coupon_counts_are_shared_across_store_types_and_checkout_groups) ... ok
+test_marketplace_filter_combines_with_tags_and_item_scope_using_and (test_taobao.TaobaoTests.test_marketplace_filter_combines_with_tags_and_item_scope_using_and) ... ok
+test_other_platforms_and_tmall_global_are_rejected_in_all_sections (test_taobao.TaobaoTests.test_other_platforms_and_tmall_global_are_rejected_in_all_sections) ... ok
+test_platform_and_store_type_conflicts_are_rejected (test_taobao.TaobaoTests.test_platform_and_store_type_conflicts_are_rejected) ... ok
+test_pre_profile_cached_result_is_invalidated (test_taobao.TaobaoTests.test_pre_profile_cached_result_is_invalidated) ... ok
+test_same_shop_id_cannot_represent_two_different_store_types (test_taobao.TaobaoTests.test_same_shop_id_cannot_represent_two_different_store_types) ... ok
+test_scope_changes_do_not_modify_task_on_failed_update (test_taobao.TaobaoTests.test_scope_changes_do_not_modify_task_on_failed_update) ... ok
+test_taobao_and_tmall_can_share_verified_checkout_group_and_coupon (test_taobao.TaobaoTests.test_taobao_and_tmall_can_share_verified_checkout_group_and_coupon) ... ok
+test_tmall_alias_update_merges_shipping_and_preserves_store_type (test_taobao.TaobaoTests.test_tmall_alias_update_merges_shipping_and_preserves_store_type) ... ok
+test_tmall_only_coupon_does_not_count_taobao_goods_towards_threshold (test_taobao.TaobaoTests.test_tmall_only_coupon_does_not_count_taobao_goods_towards_threshold) ... ok
+test_unknown_store_type_blocks_scoped_coupon_until_resolved (test_taobao.TaobaoTests.test_unknown_store_type_blocks_scoped_coupon_until_resolved) ... ok
+test_unrelated_unknown_store_type_does_not_block_shop_scoped_rule (test_taobao.TaobaoTests.test_unrelated_unknown_store_type_does_not_block_shop_scoped_rule) ... ok
+test_unsupported_optional_item_is_not_silently_ignored (test_taobao.TaobaoTests.test_unsupported_optional_item_is_not_silently_ignored) ... ok
 test_copy_is_self_contained_and_demo_creates_no_tasks (test_workflow.CLITests.test_copy_is_self_contained_and_demo_creates_no_tasks) ... ok
 test_failed_compute_replaces_previous_result_with_no_totals (test_workflow.CLITests.test_failed_compute_replaces_previous_result_with_no_totals) ... ok
 test_full_task_lifecycle_from_another_working_directory (test_workflow.CLITests.test_full_task_lifecycle_from_another_working_directory) ... ok
@@ -33,6 +48,7 @@ test_malformed_cart_shape_returns_json_error_without_traceback (test_workflow.CL
 test_atomic_roundtrip_and_busy_task_lock (test_workflow.WorkflowTests.test_atomic_roundtrip_and_busy_task_lock) ... ok
 test_blanket_permission_does_not_approve_arbitrary_products (test_workflow.WorkflowTests.test_blanket_permission_does_not_approve_arbitrary_products) ... ok
 test_consumed_coupon_balance_survives_rule_cleanup_and_reintroduction (test_workflow.WorkflowTests.test_consumed_coupon_balance_survives_rule_cleanup_and_reintroduction) ... ok
+test_distinct_checkout_groups_still_require_separate_checkouts (test_workflow.WorkflowTests.test_distinct_checkout_groups_still_require_separate_checkouts) ... ok
 test_draft_missing_price_preserves_other_products_and_resumes (test_workflow.WorkflowTests.test_draft_missing_price_preserves_other_products_and_resumes) ... ok
 test_explicit_addon_consent_three_options_and_global_savings (test_workflow.WorkflowTests.test_explicit_addon_consent_three_options_and_global_savings) ... ok
 test_fewest_can_cost_more_than_global_original_and_signed_cents_are_correct (test_workflow.WorkflowTests.test_fewest_can_cost_more_than_global_original_and_signed_cents_are_correct) ... ok
@@ -41,7 +57,6 @@ test_incomplete_coupon_is_never_silently_dropped (test_workflow.WorkflowTests.te
 test_manual_edit_fingerprint_hides_stale_result (test_workflow.WorkflowTests.test_manual_edit_fingerprint_hides_stale_result) ... ok
 test_missing_shipping_blocks_instead_of_assuming_free (test_workflow.WorkflowTests.test_missing_shipping_blocks_instead_of_assuming_free) ... ok
 test_missing_sources_are_visible (test_workflow.WorkflowTests.test_missing_sources_are_visible) ... ok
-test_multi_platform_minimum_checkouts (test_workflow.WorkflowTests.test_multi_platform_minimum_checkouts) ... ok
 test_no_addons_by_default_and_identical_choices_merge (test_workflow.WorkflowTests.test_no_addons_by_default_and_identical_choices_merge) ... ok
 test_optional_incomplete_product_does_not_block_unapproved_cart (test_workflow.WorkflowTests.test_optional_incomplete_product_does_not_block_unapproved_cart) ... ok
 test_over_limit_is_retained_and_recoverable (test_workflow.WorkflowTests.test_over_limit_is_retained_and_recoverable) ... ok
@@ -58,7 +73,7 @@ test_search_limit_does_not_return_partial_plans (test_workflow.WorkflowTests.tes
 test_shared_coupon_is_consumed_globally_after_partial_purchase (test_workflow.WorkflowTests.test_shared_coupon_is_consumed_globally_after_partial_purchase) ... ok
 
 ----------------------------------------------------------------------
-Ran 53 tests in 0.790s
+Ran 67 tests in 0.933s
 
 OK
 

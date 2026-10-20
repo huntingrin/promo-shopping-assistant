@@ -11,7 +11,7 @@
     {
       "id": "cream",
       "name": "面霜",
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "A",
       "category": "beauty",
       "price": "180.00",
@@ -21,12 +21,14 @@
         "kind": "demo",
         "note": "来自原研究项目的假设案例，并非平台实时报价。",
         "observed_at": "2026-10-20"
-      }
+      },
+      "marketplace": "tmall",
+      "price_kind": "before_order_promotions"
     },
     {
       "id": "cleanser",
       "name": "洁面",
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "A",
       "category": "beauty",
       "price": "120.00",
@@ -36,12 +38,14 @@
         "kind": "demo",
         "note": "来自原研究项目的假设案例，并非平台实时报价。",
         "observed_at": "2026-10-20"
-      }
+      },
+      "marketplace": "tmall",
+      "price_kind": "before_order_promotions"
     },
     {
       "id": "lamp",
       "name": "台灯",
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "B",
       "category": "home",
       "price": "190.00",
@@ -51,12 +55,14 @@
         "kind": "demo",
         "note": "来自原研究项目的假设案例，并非平台实时报价。",
         "observed_at": "2026-10-20"
-      }
+      },
+      "marketplace": "taobao",
+      "price_kind": "before_order_promotions"
     },
     {
       "id": "cloth",
       "name": "清洁布（可选凑单）",
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "B",
       "category": "home",
       "price": "10.00",
@@ -66,12 +72,14 @@
         "kind": "demo",
         "note": "来自原研究项目的假设案例，并非平台实时报价。",
         "observed_at": "2026-10-20"
-      }
+      },
+      "marketplace": "taobao",
+      "price_kind": "before_order_promotions"
     },
     {
       "id": "box",
       "name": "收纳盒（可选凑单）",
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "B",
       "category": "home",
       "price": "35.00",
@@ -81,14 +89,16 @@
         "kind": "demo",
         "note": "来自原研究项目的假设案例，并非平台实时报价。",
         "observed_at": "2026-10-20"
-      }
+      },
+      "marketplace": "taobao",
+      "price_kind": "before_order_promotions"
     }
   ],
   "promotions": [
     {
       "id": "shop-A",
       "name": "A店满300减50",
-      "platform": "demo",
+      "platform": "taobao",
       "mode": "automatic",
       "shops": [
         "A"
@@ -105,7 +115,7 @@
     {
       "id": "cross",
       "name": "跨店每满200减30，每次结算封顶30",
-      "platform": "demo",
+      "platform": "taobao",
       "mode": "automatic",
       "threshold": "200.00",
       "discount": "30.00",
@@ -121,7 +131,7 @@
     {
       "id": "beauty",
       "name": "美妆满300减20券（仅1张）",
-      "platform": "demo",
+      "platform": "taobao",
       "mode": "selectable",
       "categories": [
         "beauty"
@@ -139,7 +149,7 @@
     {
       "id": "shop-B",
       "name": "B店满200减25券（仅1张）",
-      "platform": "demo",
+      "platform": "taobao",
       "mode": "selectable",
       "shops": [
         "B"
@@ -157,7 +167,7 @@
   ],
   "shipping": [
     {
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "A",
       "fee": "0.00",
       "basis": "price",
@@ -168,7 +178,7 @@
       }
     },
     {
-      "platform": "demo",
+      "platform": "taobao",
       "shop": "B",
       "fee": "0.00",
       "basis": "price",

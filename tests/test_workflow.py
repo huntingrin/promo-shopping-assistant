@@ -157,24 +157,24 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(out["status"], "compared_under_input_rules")
         self.assertIn("source:item:cream", [q["id"] for q in out["questions"]])
 
-    def test_multi_platform_minimum_checkouts(self):
-        data = {"version": 1, "items": [{"id": "a", "platform": "p", "shop": "s", "price": "100"},
-                                             {"id": "b", "platform": "q", "shop": "s", "price": "100"}],
-                "promotions": [], "shipping": [{"platform": p, "shop": "s", "fee": "0", "basis": "price"} for p in ("p", "q")]}
+    def test_distinct_checkout_groups_still_require_separate_checkouts(self):
+        data = {"version": 1, "items": [{"id": "a", "platform": "taobao", "shop": "s", "price": "100", "checkout_group": "now"},
+                                             {"id": "b", "platform": "tmall", "shop": "s", "price": "100", "checkout_group": "later"}],
+                "promotions": [], "shipping": [{"platform": "taobao", "shop": "s", "fee": "0", "basis": "price"}]}
         out = w.comparison(w.new_state(data))
         self.assertEqual(out["minimum_checkouts"], 2)
         self.assertEqual(out["plans"]["fewest_checkouts"]["summary"]["checkouts"], 2)
 
     def test_fewest_can_cost_more_than_global_original_and_signed_cents_are_correct(self):
-        data = {"version": 1, "items": [{"id": "a", "platform": "p", "shop": "s", "price": "10", "quantity": 2}],
-                "promotions": [{"id": "auto", "platform": "p", "mode": "automatic", "threshold": "10", "discount": "1.25", "basis": "price"}],
-                "shipping": [{"platform": "p", "shop": "s", "fee": "0", "basis": "price"}]}
+        data = {"version": 1, "items": [{"id": "a", "platform": "taobao", "shop": "s", "price": "10", "quantity": 2}],
+                "promotions": [{"id": "auto", "platform": "taobao", "mode": "automatic", "threshold": "10", "discount": "1.25", "basis": "price"}],
+                "shipping": [{"platform": "taobao", "shop": "s", "fee": "0", "basis": "price"}]}
         out = w.comparison(w.new_state(data))
         self.assertEqual(out["plans"]["original"]["summary"]["total_spend"], "17.50")
         self.assertEqual(out["plans"]["fewest_checkouts"]["summary"]["net_savings_vs_original"], "-1.25")
 
     def test_presale_total_paid_and_due_are_separate(self):
-        state = w.new_state(w.load_json(ROOT / "fixtures/presale.json"))
+        state = w.new_state(w.load_json(ROOT / "fixtures/taobao-presale.json"))
         summary = w.comparison(state)["plans"]["cheapest"]["summary"]
         self.assertEqual((summary["total_spend"], summary["deposit_paid"], summary["pay_now"]), ("720.00", "100.00", "620.00"))
 
@@ -196,9 +196,9 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(w.comparison(state)["status"], "complete")
 
     def test_shared_coupon_is_consumed_globally_after_partial_purchase(self):
-        data = {"version": 1, "items": [{"id": "a", "platform": "p", "shop": "s", "price": "100", "quantity": 2}],
-                "promotions": [{"id": "c", "platform": "p", "mode": "selectable", "threshold": "100", "discount": "20", "basis": "price", "total_uses": 2}],
-                "shipping": [{"platform": "p", "shop": "s", "fee": "0", "basis": "price"}]}
+        data = {"version": 1, "items": [{"id": "a", "platform": "taobao", "shop": "s", "price": "100", "quantity": 2}],
+                "promotions": [{"id": "c", "platform": "taobao", "mode": "selectable", "threshold": "100", "discount": "20", "basis": "price", "total_uses": 2}],
+                "shipping": [{"platform": "taobao", "shop": "s", "fee": "0", "basis": "price"}]}
         state = w.new_state(data); state["latest_result"] = w.comparison(state)
         state = w.record_purchase(state, "cheapest", 1, {"expected_revision": 1, "id": "p1", "pay_now": "80", "coupon_ids": ["c"], "source": "用户已买"})
         self.assertEqual(state["cart"]["items"][0]["quantity"], 1)
@@ -211,8 +211,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(state["coupon_balances"]["beauty"], 0)
         rule = next(x for x in cart()["promotions"] if x["id"] == "beauty")
         rule.pop("total_uses")
-        state = patch(state, items=[{"id": "new-beauty", "name": "新商品", "platform": "demo", "shop": "A", "category": "beauty", "price": "300"}],
-                      promotions=[rule], shipping=[{"platform": "demo", "shop": "A", "fee": "0", "basis": "price"}])
+        state = patch(state, items=[{"id": "new-beauty", "name": "新商品", "platform": "taobao", "shop": "A", "category": "beauty", "price": "300"}],
+                      promotions=[rule], shipping=[{"platform": "taobao", "shop": "A", "fee": "0", "basis": "price"}])
         self.assertEqual(next(x for x in state["cart"]["promotions"] if x["id"] == "beauty")["total_uses"], 0)
         self.assertNotIn("beauty", w.comparison(state)["plans"]["cheapest"]["coupon_usage"])
 
