@@ -1,4 +1,4 @@
 interface:
   display_name: "淘宝天猫算账助手"
-  short_description: "核对淘宝天猫比例折扣、满减及红包金币，比较拆单方案，持续纠错、记账和重算"
-  default_prompt: "使用 $promo-shopping-assistant 帮我核对淘宝天猫购物清单和本次优惠规则，比较怎么买少花钱、少操作，并保留任务方便继续修改。"
+  short_description: "默认打开浏览器读取购物车，核对淘宝天猫比例折扣、满减及红包金币，比较拆单方案，持续纠错、记账和重算"
+  default_prompt: "使用 $promo-shopping-assistant 帮我看看淘宝天猫购物车怎么买划算。默认先打开浏览器读取我的购物车；未登录就引导我扫码。核对本次优惠规则，比较怎么买少花钱、少操作，并保留任务方便继续修改。"

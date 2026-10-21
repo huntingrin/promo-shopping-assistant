@@ -1,0 +1,143 @@
+{
+  "schema": "promo-shopping-assistant/cart-snapshot",
+  "schema_version": 1,
+  "captured_at": "2026-10-21T18:00:00+08:00",
+  "title": "淘宝天猫购物车",
+  "source": {
+    "kind": "browser",
+    "url": "https://cart.taobao.com/cart.htm",
+    "browser": "chrome",
+    "mode": "persistent"
+  },
+  "login": {
+    "required": false
+  },
+  "pages": [
+    {
+      "kind": "cart",
+      "url": "https://cart.taobao.com/cart.htm",
+      "captured_at": "2026-10-21T18:00:00+08:00"
+    },
+    {
+      "kind": "checkout",
+      "url": "https://buy.taobao.com/auction/order/confirm_order.htm",
+      "captured_at": "2026-10-21T18:01:00+08:00"
+    }
+  ],
+  "cart": {
+    "version": 1,
+    "label": "浏览器购物车演示",
+    "assumptions": [
+      "以下为浏览器快照演示数据，不对应任何真实账户或平台实时报价。"
+    ],
+    "items": [
+      {
+        "id": "cream",
+        "name": "面霜",
+        "spec": "50g",
+        "platform": "taobao",
+        "marketplace": "tmall",
+        "shop": "A",
+        "quantity": 1,
+        "price": "180.00",
+        "price_text": "活动价 ¥180.00",
+        "price_label": "活动价",
+        "price_kind": "before_order_promotions",
+        "required": true,
+        "url": "https://detail.tmall.com/item.htm?id=10001",
+        "selected": true,
+        "raw_text": "面霜 50g 活动价 ¥180.00 数量1",
+        "source": {
+          "kind": "browser",
+          "page": "cart",
+          "text": "面霜 50g 活动价 ¥180.00 数量1"
+        }
+      },
+      {
+        "id": "lamp",
+        "name": "台灯",
+        "spec": "暖白光",
+        "platform": "taobao",
+        "marketplace": "taobao",
+        "shop": "B",
+        "quantity": 1,
+        "price": "199.00",
+        "price_text": "活动价 ¥199.00",
+        "price_label": "活动价",
+        "price_kind": "before_order_promotions",
+        "required": true,
+        "url": "https://item.taobao.com/item.htm?id=10002",
+        "selected": true,
+        "raw_text": "台灯 暖白光 活动价 ¥199.00 数量1",
+        "source": {
+          "kind": "browser",
+          "page": "cart",
+          "text": "台灯 暖白光 活动价 ¥199.00 数量1"
+        }
+      }
+    ],
+    "promotions": [
+      {
+        "id": "shop-B-180-25",
+        "name": "B店满180减25券",
+        "platform": "taobao",
+        "mode": "selectable",
+        "shops": [
+          "B"
+        ],
+        "threshold": "180.00",
+        "discount": "25.00",
+        "basis": "threshold_price",
+        "total_uses": 1,
+        "raw_text": "B店满180减25券，仅1张",
+        "source": {
+          "kind": "browser",
+          "page": "promotion",
+          "text": "B店满180减25券，仅1张"
+        }
+      }
+    ],
+    "shipping": [
+      {
+        "platform": "taobao",
+        "shop": "A",
+        "fee": "0.00",
+        "basis": "price",
+        "raw_text": "A店包邮",
+        "source": {
+          "kind": "browser",
+          "page": "checkout",
+          "text": "A店包邮"
+        }
+      },
+      {
+        "platform": "taobao",
+        "shop": "B",
+        "fee": "0.00",
+        "basis": "price",
+        "raw_text": "B店包邮",
+        "source": {
+          "kind": "browser",
+          "page": "checkout",
+          "text": "B店包邮"
+        }
+      }
+    ]
+  },
+  "promotion_hints": [
+    "B店满180减25券，仅1张"
+  ],
+  "checkout": {
+    "captured": true,
+    "url": "https://buy.taobao.com/auction/order/confirm_order.htm",
+    "captured_at": "2026-10-21T18:01:00+08:00",
+    "summary_lines": [
+      "商品合计 ¥379.00",
+      "优惠 -¥25.00",
+      "运费 ¥0.00",
+      "应付 ¥354.00"
+    ]
+  },
+  "questions": [],
+  "warnings": []
+}

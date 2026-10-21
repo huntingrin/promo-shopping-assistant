@@ -12,6 +12,7 @@ from workflow import (VERSION, InputError, SearchLimit, check, new_state, load_j
                       record_purchase, view_state, render_state, render_comparison,
                       fingerprint, now)
 from taobao import MARKET, PROFILE_VERSION
+from browser_import import import_into_state, load_snapshot, render_import
 
 
 def parser():
@@ -20,7 +21,8 @@ def parser():
     sub = root.add_subparsers(dest="command", required=True)
     for name, help_text in (("new", "创建任务，默认空清单"), ("show", "读取清单、待补问和有效结果"),
                             ("update", "增量修改资料并废止旧结果"), ("compare", "重算原清单、少花钱、少操作"),
-                            ("purchase", "记录已完成购买、扣券并更新剩余清单")):
+                            ("purchase", "记录已完成购买、扣券并更新剩余清单"),
+                            ("import-cart", "把浏览器购物车快照导入任务")):
         command = sub.add_parser(name, help=help_text)
         command.add_argument("task", type=Path, help="任务目录，包含 session.json")
         command.add_argument("--format", choices=("json", "text"), default="json")
@@ -37,6 +39,9 @@ def parser():
             command.add_argument("--receipt", type=Path, required=True)
         elif name == "compare":
             command.add_argument("--time-limit", type=float, default=15)
+        elif name == "import-cart":
+            command.add_argument("--snapshot", type=Path, required=True,
+                                 help="浏览器采集的 cart-snapshot JSON")
     solve = sub.add_parser("solve", help="无任务文件的单次方案比较")
     solve.add_argument("input", type=Path)
     solve.add_argument("--approve", action="append", default=[], metavar="ITEM_ID", help="用户同意的具体加购品，可重复")
@@ -78,12 +83,18 @@ def main(argv=None):
             text = render_comparison(output)
             code = exit_status(output)
         else:
-            if args.command != "new":
+            if args.command not in ("new", "import-cart"):
                 check((args.task / "session.json").is_file(), "任务不存在，请先new；原目录未修改")
             with task_lock(args.task) as directory:
                 if args.command == "new":
                     check(not (directory / "session.json").exists(), "任务已存在，请show或选择新目录")
                     state = new_state(load_json(args.input) if args.input else None, args.title)
+                    save_state(directory, state)
+                elif args.command == "import-cart":
+                    snapshot = load_snapshot(args.snapshot)
+                    existing = (read_state(directory)
+                                if (directory / "session.json").exists() else None)
+                    state, report = import_into_state(existing, snapshot)
                     save_state(directory, state)
                 else:
                     state = read_state(directory)
@@ -101,6 +112,10 @@ def main(argv=None):
                     output = state["latest_result"]
                     text = render_comparison(output)
                     code = exit_status(output)
+                elif args.command == "import-cart":
+                    output = dict(report, task=str(directory), revision=state["revision"])
+                    text = render_import(report, directory)
+                    code = 0
                 else:
                     output = view_state(state, history=getattr(args, "history", False))
                     text = render_state(state)

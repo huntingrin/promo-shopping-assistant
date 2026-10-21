@@ -15,9 +15,12 @@ def main():
     output.mkdir(exist_ok=True)
     archive = output / f"promo-shopping-assistant-{VERSION}.zip"
     paths = [root / name for name in ("SKILL.md", "README.md", "PLAN.md")]
-    for folder in ("scripts", "references", "fixtures", "agents", "docs", "tests"):
+    excluded_dirs = {"__pycache__", ".venv", "browser-profile", "evidence"}
+    excluded_files = {"browser-cart.json", "cart-snapshot.json"}
+    for folder in ("scripts", "references", "fixtures", "agents", "docs", "tests", "optional"):
         paths.extend(p for p in (root / folder).rglob("*") if p.is_file()
-                     and "__pycache__" not in p.parts and p.suffix != ".pyc")
+                     and not (set(p.parts) & excluded_dirs)
+                     and p.suffix != ".pyc" and p.name not in excluded_files)
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as stream:
         for path in sorted(paths):
             stream.write(path, Path("promo-shopping-assistant") / path.relative_to(root))

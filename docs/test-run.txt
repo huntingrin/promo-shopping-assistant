@@ -1,10 +1,37 @@
-Program: promo-shopping-assistant 0.3.0
+Program: promo-shopping-assistant 0.4.0
 Python: 3.14.6
-Platform: Darwin 25.3.0 arm64
-
+Platform: macOS-27.0.1-arm64-arm-64bit-Mach-O
+Playwright: 1.64.0 (optional adapter test dependency)
 
 $ python3 -m unittest discover -s tests -v
-
+test_multiple_unlabelled_prices_are_not_guessed (test_browser_adapter.BrowserAdapterHelperTests.test_multiple_unlabelled_prices_are_not_guessed) ... ok
+test_price_kind_mapping (test_browser_adapter.BrowserAdapterHelperTests.test_price_kind_mapping) ... ok
+test_price_parsing_and_candidates (test_browser_adapter.BrowserAdapterHelperTests.test_price_parsing_and_candidates) ... ok
+test_redaction_removes_personal_data (test_browser_adapter.BrowserAdapterHelperTests.test_redaction_removes_personal_data) ... ok
+test_relevant_lines_and_deduplication (test_browser_adapter.BrowserAdapterHelperTests.test_relevant_lines_and_deduplication) ... ok
+test_same_item_url_with_different_skus_gets_different_ids (test_browser_adapter.BrowserAdapterHelperTests.test_same_item_url_with_different_skus_gets_different_ids) ... ok
+test_stable_ids_are_deterministic_and_safe (test_browser_adapter.BrowserAdapterHelperTests.test_stable_ids_are_deterministic_and_safe) ... ok
+test_adapter_cli_captures_local_mock_cart (test_browser_adapter.BrowserAdapterMockPageTests.test_adapter_cli_captures_local_mock_cart) ... ok
+test_checkout_preview_is_read_only_and_restores_selection (test_browser_adapter.BrowserAdapterMockPageTests.test_checkout_preview_is_read_only_and_restores_selection) ... 将进入只读结算预览核对金额；不会提交订单或付款。
+ok
+test_extract_cart_from_mock_page_and_login_markers (test_browser_adapter.BrowserAdapterMockPageTests.test_extract_cart_from_mock_page_and_login_markers) ... ok
+test_same_item_with_different_skus_is_not_deduplicated (test_browser_adapter.BrowserAdapterMockPageTests.test_same_item_with_different_skus_is_not_deduplicated) ... ok
+test_cart_display_price_is_an_explicit_assumption (test_browser_import.BrowserImportTests.test_cart_display_price_is_an_explicit_assumption) ... ok
+test_cart_import_cli_creates_task_and_compares (test_browser_import.BrowserImportTests.test_cart_import_cli_creates_task_and_compares) ... ok
+test_complete_promotion_hint_is_not_reported_as_unaccounted (test_browser_import.BrowserImportTests.test_complete_promotion_hint_is_not_reported_as_unaccounted) ... ok
+test_coupon_after_price_is_blocked_not_double_discounted (test_browser_import.BrowserImportTests.test_coupon_after_price_is_blocked_not_double_discounted) ... ok
+test_existing_task_merges_and_invalidates_old_result (test_browser_import.BrowserImportTests.test_existing_task_merges_and_invalidates_old_result) ... ok
+test_incomplete_promotion_is_preserved_as_question_not_guessed (test_browser_import.BrowserImportTests.test_incomplete_promotion_is_preserved_as_question_not_guessed) ... ok
+test_invalid_quantity_is_kept_as_one_with_warning (test_browser_import.BrowserImportTests.test_invalid_quantity_is_kept_as_one_with_warning) ... ok
+test_invalid_snapshot_does_not_create_session (test_browser_import.BrowserImportTests.test_invalid_snapshot_does_not_create_session) ... ok
+test_missing_cart_and_unknown_fields_are_rejected (test_browser_import.BrowserImportTests.test_missing_cart_and_unknown_fields_are_rejected) ... ok
+test_missing_field_questions_are_not_duplicated (test_browser_import.BrowserImportTests.test_missing_field_questions_are_not_duplicated) ... ok
+test_personal_data_is_rejected_or_redacted (test_browser_import.BrowserImportTests.test_personal_data_is_rejected_or_redacted) ... ok
+test_presale_flag_creates_a_blocking_question (test_browser_import.BrowserImportTests.test_presale_flag_creates_a_blocking_question) ... ok
+test_quantity_over_limit_is_preserved_not_silently_reduced (test_browser_import.BrowserImportTests.test_quantity_over_limit_is_preserved_not_silently_reduced) ... ok
+test_snapshot_creates_task_with_browser_sources_and_calculates (test_browser_import.BrowserImportTests.test_snapshot_creates_task_with_browser_sources_and_calculates) ... ok
+test_unlabelled_cart_price_is_unknown_and_blocks (test_browser_import.BrowserImportTests.test_unlabelled_cart_price_is_unknown_and_blocks) ... ok
+test_unmatched_promotion_scope_is_not_silently_applied (test_browser_import.BrowserImportTests.test_unmatched_promotion_scope_is_not_silently_applied) ... ok
 test_discount_demo_and_persistent_purchase_roundtrip (test_discounts.DiscountCLITests.test_discount_demo_and_persistent_purchase_roundtrip) ... ok
 test_extended_search_failure_replaces_prior_success (test_discounts.DiscountCLITests.test_extended_search_failure_replaces_prior_success) ... ok
 test_auto_coupon_ledger_survives_removal_and_reintroduction (test_discounts.DiscountTests.test_auto_coupon_ledger_survives_removal_and_reintroduction) ... ok
@@ -106,18 +133,8 @@ test_search_limit_does_not_return_partial_plans (test_workflow.WorkflowTests.tes
 test_shared_coupon_is_consumed_globally_after_partial_purchase (test_workflow.WorkflowTests.test_shared_coupon_is_consumed_globally_after_partial_purchase) ... ok
 
 ----------------------------------------------------------------------
-Ran 99 tests in 1.630s
+Ran 126 tests in 15.881s
 
 OK
 
 exit=0
-
-
-$ python3 quick_validate.py <skill-dir>
-
-Skill is valid!
-
-exit=0
-
-
-Upstream snapshot SHA-256: all 3 files match recorded originals.

@@ -16,4 +16,6 @@ v0.2 新增 `scripts/taobao.py`：产品范围限定淘宝天猫，将两类店�
 
 v0.3 新增 `scripts/discounts.py`，复用原整数金额、商品解析、结算明细等基础，独立实现比例/件数折扣、共享金额/积分、支付阶段和顺序敏感求解。只含原字段时仍走原求解器；原快照SHA-256不变。新协议在 `references/discounts.md`，假设叠加案例在 `fixtures/discounts.json`，不硬编码当前平台比例或金币兑换规则。
 
+v0.4 新增 `scripts/browser_import.py` 和可选 `optional/browser/`：前者只做快照校验、价格口径映射、脱敏和任务导入，不修改计算内核；后者用 Playwright 读取购物车并输出快照。核心程序仍无网络调用和第三方依赖。
+
 本仓库不包含真实购物资料或第三方平台实时活动数据。

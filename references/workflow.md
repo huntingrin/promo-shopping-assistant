@@ -1,8 +1,8 @@
 # 程序与任务协议 v1
 
-Python 3.10+，无依赖；任意工作目录均可执行。以下的 `<skill-dir>` 指包含 `SKILL.md` 的目录。输入字段区分大小写，金额推荐十进制字符串，数量和版本为整数。程序不直接处理图片：宿主 Agent 将材料整理为下述资料。
+核心 Python 3.10+，无第三方依赖；任意工作目录均可执行。以下的 `<skill-dir>` 指包含 `SKILL.md` 的目录。输入字段区分大小写，金额推荐十进制字符串，数量和版本为整数。程序不直接处理图片或访问网页：宿主 Agent 默认用浏览器采集购物车并整理为下述资料；浏览器不可用时才用截图/文字。浏览器协议见 [browser-cart.md](browser-cart.md)。可选浏览器适配器另装 Playwright。
 
-v0.3 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tmall.md](taobao-tmall.md) 核实当前规则；原 `input-spec.md` 是保留的通用内核协议，不能据其任意平台字段推定产品支持其他平台。比例、多件、共享余额与支付优惠使用 [discounts.md](discounts.md) 的增补协议；原内核文档的“未覆盖比例”等说明只适用于原快照。
+v0.4 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tmall.md](taobao-tmall.md) 核实当前规则；原 `input-spec.md` 是保留的通用内核协议，不能据其任意平台字段推定产品支持其他平台。比例、多件、共享余额与支付优惠使用 [discounts.md](discounts.md) 的增补协议；原内核文档的“未覆盖比例”等说明只适用于原快照。
 
 ## 命令
 
@@ -10,6 +10,7 @@ v0.3 的产品入口只接受淘宝/天猫国内普通购物。先读 [taobao-tm
 python3 <skill-dir>/scripts/shopping.py demo [--format json|text]
 python3 <skill-dir>/scripts/shopping.py solve CART.json [--approve ITEM_ID ...] [--prefer cheapest|fewest_checkouts] [--format json|text]
 python3 <skill-dir>/scripts/shopping.py new TASK_DIR [--input CART.json] [--title TITLE]
+python3 <skill-dir>/scripts/shopping.py import-cart TASK_DIR --snapshot SNAPSHOT.json
 python3 <skill-dir>/scripts/shopping.py show TASK_DIR [--history] [--format json|text]
 python3 <skill-dir>/scripts/shopping.py update TASK_DIR --patch PATCH.json
 python3 <skill-dir>/scripts/shopping.py compare TASK_DIR [--time-limit 15] [--format json|text]
@@ -22,6 +23,23 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 
 `new` 不覆盖已有任务。大多数命令默认标准输出JSON；演示默认可读文字。`show` 默认省略历史，`--history` 返回历史快照。
 
+## 浏览器快照导入
+
+默认流程是 `optional/browser/browser_cart.py capture` 生成 `cart-snapshot.json`，再执行：
+
+```bash
+python3 <skill-dir>/scripts/shopping.py import-cart TASK_DIR --snapshot SNAPSHOT.json
+```
+
+- 任务不存在时创建，已存在时按商品/优惠/运费ID合并；保留任务里其他手工修正。
+- 快照中的缺失价格、店铺、运费或不完整优惠生成阻塞问题；导入成功不等于已算出金额。
+- `source.kind=browser`，来源记录页面URL、页面类型、观察时间和关键原文；地址、手机号、支付信息不导入。
+- 价格标签决定 `price_kind`：活动价/售价按优惠前价；券后/到手价、尾款或未知口径阻止求解。
+- `promotion_hints` 中未被完整规则覆盖的优惠只生成待核实问题，不猜门槛或叠加方式。
+- 只读结算预览写入 `checkout` 供核对，不视为已购买；`purchase` 仍需用户明确确认。
+
+快照字段、登录和只读红线见 [browser-cart.md](browser-cart.md)。
+
 ## 初始购物资料
 
 完整计算语义见 [input-spec.md](input-spec.md)。包装层额外接受商品 `spec`（规格字符串）、`marketplace`（淘宝/天猫店铺类型）和 `price_kind`（价格口径），优惠额外接受 `marketplaces` 范围条件；求解前将这些元数据编译为内核可用的输入。其他商品及优惠字段沿用内核协议，不接受未知规则字段。
@@ -30,7 +48,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 | --- | --- |
 | 商品 `platform` | `taobao` 是统一交易域；输入 `tmall` 自动转换为 `taobao` 并标记天猫店；其他平台拒绝 |
 | 商品 `marketplace` | 可填 `taobao` 或 `tmall`；未知可省略/设为 `null`，影响限定店铺类型的用券时会补问 |
-| 商品 `price_kind` | `before_order_promotions` 符合原计算协议；`after_coupons` / `tail_payment` / `unknown` 均阻止求解。省略表示调用者按原协议提供优惠前价格；Agent 提取截图时应显式标记 |
+| 商品 `price_kind` | `before_order_promotions` 符合原计算协议；`after_coupons` / `tail_payment` / `unknown` 均阻止求解。省略表示调用者按原协议提供优惠前价格；Agent 从浏览器或截图提取时应显式标记 |
 | 优惠 `platform` | `taobao` 可涵盖淘宝及天猫店；`tmall` 简写等价于 `platform=taobao, marketplaces=["tmall"]` |
 | 优惠 `marketplaces` | 与店铺、商品ID、品类、标签共同以 AND 匹配；淘宝店专属写 `["taobao"]`，天猫专属写 `["tmall"]` |
 | 运费 `platform` | 淘宝/天猫均归入 `taobao` 交易域，按实际唯一店铺标识配置，不能为同店重复配置 |
@@ -65,7 +83,13 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 {"kind":"screenshot","path":"/task/cart-01.png","region":"上半部第二行","observed_at":"2026-10-20T21:00:00+08:00","fields":{"price":"活动价199元","quantity":"数量1"}}
 ```
 
-来源缺失会标为待核实，但不会伪造来源。程序检查结构和金额，来源真实性、截图去重、价格口径与规则完备性由 Agent 核实；不确定时保存阻塞问题。`data_as_of` 表示最近一次资料更新时点，不表示每个字段在同一时刻重新验价；各字段的观察时间见来源。
+浏览器示例：
+
+```json
+{"kind":"browser","page":"cart","url":"https://cart.taobao.com/cart.htm","observed_at":"2026-10-21T18:00:00+08:00","text":"台灯 暖白光 活动价 ¥199.00 数量1"}
+```
+
+来源缺失会标为待核实，但不会伪造来源。程序检查结构和金额，来源真实性、页面去重、价格口径与规则完备性由 Agent 核实；不确定时保存阻塞问题。`data_as_of` 表示最近一次资料更新时点，不表示每个字段在同一时刻重新验价；各字段的观察时间见来源。
 
 底层 `optimize.py` 会按0元模拟未配置运费并警告；高层 `shopping.py` 会先阻止该情况。面向用户使用高层入口。
 
@@ -101,7 +125,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 | `max_orders` | 更新可接受的最多结算次数，1–12；`preferred` 只改变推荐偏好，不改变计算输入 |
 | `data_as_of`, `label` | 可选的资料时点或情景名称 |
 
-同次更新中的ID不能重复，也不能同时修改和删除。删除商品后清理失效的商品专属规则和运费；投影到不加购方案时同样清理不适用规则，适用的账户券次数仍保持全局共享。修改价格等事实但未给新来源时，保存此次修改原因作为用户修正来源，旧资料留在历史；对截图提取的修正请显式传准确来源。
+同次更新中的ID不能重复，也不能同时修改和删除。删除商品后清理失效的商品专属规则和运费；投影到不加购方案时同样清理不适用规则，适用的账户券次数仍保持全局共享。修改价格等事实但未给新来源时，保存此次修改原因作为用户修正来源，旧资料留在历史；对浏览器或截图提取的修正请显式传准确来源。
 
 优惠顺序就是输入数组顺序。需要重排时，保存当前状态后在一次更新里删除相关旧规则，再通过**下一次更新**按正确顺序添加；每次都使用新的版本号。金额/规则核实和人工问答不由程序自动完成。
 
@@ -132,7 +156,7 @@ python3 <skill-dir>/scripts/shopping.py purchase TASK_DIR --plan cheapest --orde
 
 ## 结算记账
 
-仅在用户确认某次已经买下后使用。不能将点击“去结算”、预览截图或推荐步骤当成已购。
+仅在用户确认某次已经买下后使用。不能将点击“去结算”、只读结算预览或推荐步骤当成已购。
 
 ```json
 {
@@ -151,13 +175,13 @@ python3 <skill-dir>/scripts/shopping.py compare <task-dir>
 
 `coupon_ids` 填本次实际执行的 `mode=selectable` 优惠ID（无则 `[]`），不包含自动满减；包括不限次数的可选活动。程序要求它们与当前该次结算一致，否则先核对和更新输入。只对有次数上限的优惠扣除一次，保留全局资源约束。
 
-任务内另存 `coupon_balances`，即使规则随已购商品清理也保留剩余次数。之后重新引入同ID可选优惠而未填 `total_uses` 时，沿用已记录余额；显式填写 `total_uses` 表示重新核实后的当前余额，不能把旧截图的初始券数填回去。
+任务内另存 `coupon_balances`，即使规则随已购商品清理也保留剩余次数。之后重新引入同ID可选优惠而未填 `total_uses` 时，沿用已记录余额；显式填写 `total_uses` 表示重新核实后的当前余额，不能把旧截图或旧快照的初始券数填回去。
 
 每次只记录一个结算步骤；之后旧方案失效，先重新计算再记录下一次，避免顺序变化后误用旧订单序号。凭据ID不能重复；实付金额不含此前已付定金，程序额外记录完整支出。
 
 商品数量按本次结算扣除；原清单全部买完后返回 `complete`，剩余未买的可选候选不强制购买。若实付金额与预计不同，会生成阻塞差异问题；查清是否影响剩余规则后，通过更新和 `resolve_questions` 解除。
 
-## 从v0.1/v0.2继续任务
+## 从v0.1/v0.2/v0.3继续任务
 
 仍使用 `session.json` v1。旧任务的淘宝/天猫别名在读取时规范化，旧结果因规则适配指纹变化而失效，需要重新计算。普通 `show` 不改写原文件；下一次更新/计算会原子保存规范化的资料。
 
@@ -165,4 +189,4 @@ python3 <skill-dir>/scripts/shopping.py compare <task-dir>
 
 ## 本地文件与并发
 
-所有状态原子写入 `TASK_DIR/session.json`，包含输入、偏好、补问、已购凭据、历史和当前结果。命令通过任务内 `.shopping.lock` 阻止并发写入；若命令崩溃遗留锁，先确认其中PID已结束再删除该锁，不删除任务文件。历史可能包含用户截图路径、来源原文及消费记录，不上传到代码仓库。
+所有状态原子写入 `TASK_DIR/session.json`，包含输入、偏好、补问、已购凭据、历史和当前结果。命令通过任务内 `.shopping.lock` 阻止并发写入；若命令崩溃遗留锁，先确认其中PID已结束再删除该锁，不删除任务文件。历史可能包含用户截图路径、浏览器快照、来源原文及消费记录，不上传到代码仓库。

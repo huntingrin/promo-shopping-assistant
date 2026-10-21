@@ -20,7 +20,7 @@ from discounts import (optimize, EXT_FIELDS, RESOURCE_FIELDS, validate_rule,
 from taobao import (MARKET, PROFILE_VERSION, normalise_cart, normalise_row,
                     marketplace_matches, compile_cart)
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 ITEM_FIELDS = {"id", "name", "spec", "platform", "shop", "category", "tags",
                "checkout_group", "price", "original_price", "threshold_price",
                "presale_discount", "deposit_paid", "required", "quantity", "source",
@@ -223,10 +223,12 @@ def readiness(state):
     cart = project(state["cart"], active_ids(state))
     pending = deepcopy(state["questions"])
     def add(ident, text, blocking=True):
+        if any(item["id"] == ident for item in pending):
+            return
         pending.append({"id": ident, "text": text, "blocking": blocking})
     if not any(x.get("required", True) for x in cart["items"]):
         if not state["purchases"]:
-            add("items", "请提供这次真正要买的商品，截图或文字均可。")
+            add("items", "请提供这次真正要买的商品；可以重新读取购物车，也可以发截图或文字。")
         return pending
     count = sum(x.get("quantity", 1) for x in cart["items"])
     if count > 12:

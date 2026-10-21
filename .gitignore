@@ -8,3 +8,7 @@ session.json
 .shopping.lock
 .session-*.json
 .coverage
+browser-profile/
+evidence/
+browser-cart.json
+cart-snapshot.json
